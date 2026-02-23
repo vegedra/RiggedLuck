@@ -1,73 +1,118 @@
-// Jogo clicker
-// @author: Pedro Ivo (digitalcakestudio)
-
-/* TODO:
-    Taxa fixa na rolagem (tela que mostra opções - 10, 25, 50, 100)
-    Receber melhorias pro clicker por meio das apostas - dependendo da combinação de simbolos recebe algum buff/debuff;
-    Controle de RNG via loja e rolagens
-    Receber x moedas a cada x segundos (AFK)
-
-- GUI
-- Interfaces e refatoração
-- Quests
-- Loja
- */
-
 package com.github.vegedra;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 public class Main {
-    // Variaveis
-    private static boolean running = true;
-    private static int moedas = 1;
 
-    // Getters e Setters
-    public static int getMoedas() { return moedas; }
-    public static void addMoedas(int quantidade) { moedas += quantidade; }
-    public static void setMoedas(int quantidade) { moedas = quantidade; }
+    // Variaveis e objetos
+    JLabel counterLabel, effectLabel;
+    Font font1, font2;
+    ClickerHandler cHandler = new ClickerHandler();
+    int coinCounter;
 
-    // Melhorar depois
-    static final String[] quests = {"Tente conseguir 100 moedas!", "Tente conseguir 200 moedas!",
-            "Ganhe 5 rodadas!"};
-
+    // Inicio
     public static void main(String[] args) {
-        while (running && getMoedas() > 0) {
-            AFKManager.checkAFKRewards();
-            mostrarMenu();
-            processarInput();
+        new Main();
+    }
+
+    // Construtor
+    public Main() {
+        // Inicializa o contador
+        coinCounter = 0;
+
+        // Cria as fontes para serem usadas
+        createFont();
+
+        // Cria a tela
+        createUI();
+    }
+
+    // Cria e carrega as fontes
+    public void createFont() {
+        font1 = new Font("Cambria", Font.PLAIN, 32);
+        font2 = new Font("Cambria", Font.PLAIN, 15);
+    }
+
+    // UI do jogo (JFrame)
+    public void createUI() {
+        // Criação da janela do jogo
+        JFrame window = new JFrame();
+        window.setSize(800, 600);
+        window.setResizable(false);
+        window.setTitle("Rigged Luck");
+        window.getContentPane().setBackground(Color.white);
+        window.setLayout(null);
+        window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+        // Botão de confirmação fechar janela
+        window.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                int option = javax.swing.JOptionPane.showConfirmDialog(
+                        window,
+                        "Tem certeza que deseja sair do jogo?",
+                        "Fechar jogo",
+                        javax.swing.JOptionPane.YES_NO_OPTION,
+                        javax.swing.JOptionPane.QUESTION_MESSAGE
+                );
+
+                if (option == javax.swing.JOptionPane.YES_OPTION) {
+                    System.exit(0);
+                }
+                // Se escolher "Não", a janela permanece aberta
+            }
+        });
+
+        // Clicker (imagem)
+        JPanel clickerPanel = new JPanel();
+        clickerPanel.setBounds(80, 250, 250, 255);
+        window.add(clickerPanel);
+
+        // Carrega a imagem de fundo
+        ImageIcon circle = new ImageIcon(
+                getClass().getResource("/images/circle.png"));
+
+        // Cria o botão para a imagem
+        JButton clickerButton = new JButton();
+        clickerButton.setBackground(Color.white);
+        clickerButton.setFocusPainted(false);
+        clickerButton.setBorder(null);
+        clickerButton.setIcon(circle);
+        clickerButton.addActionListener(cHandler);
+        clickerPanel.add(clickerButton);
+
+        // Panel para o contador
+        JPanel counterPanel = new JPanel();
+        counterPanel.setBounds(80, 120, 200, 100);
+        counterPanel.setBackground(Color.white);
+        counterPanel.setLayout(new GridLayout(2, 1));
+        window.add(counterPanel);
+
+        // Texto para o contador de moedas e efeitos (abaixo)
+        counterLabel = new JLabel(coinCounter + " moedas");
+        counterLabel.setForeground(Color.black);
+        counterLabel.setFont(font1);
+        counterPanel.add(counterLabel);
+
+        effectLabel = new JLabel();
+        effectLabel.setForeground(Color.black);
+        effectLabel.setFont(font2);
+        counterPanel.add(effectLabel);
+
+        // Carrega e exibe tudo
+        window.setVisible(true);
+    }
+
+    // Ações e eventos (click)
+    public class ClickerHandler implements ActionListener {
+        public void actionPerformed(ActionEvent event) {
+            // Incrementa moedas ao clicar
+            coinCounter++;
+            counterLabel.setText(coinCounter + " moedas");
+            //System.out.println(coinCounter);
         }
-        encerrarJogo();
-    }
-
-    // Menu Inicial
-    private static void mostrarMenu() {
-        System.out.println("==============================");
-        System.out.println("        JOGO CLICKER");
-        System.out.println("          Moedas: " + getMoedas());
-        System.out.println("       AFK: " + AFKManager.getAFKRate() + "moeda/10s");
-        System.out.println("==============================");
-        System.out.println("\nAperte [enter] para gerar moedas");
-        System.out.println("digite [a] para apostar");
-        System.out.println("digite [q] para sair");
-        System.out.print("\n> ");
-    }
-
-    private static void processarInput() {
-        String input = InputManager.scanner.nextLine().toUpperCase();
-
-        switch (input) {
-            case "":
-                addMoedas(1);
-                System.out.println("+1 moeda!");
-            case "A": Slot.tela();
-            case "Q": running = false;
-            default: System.out.println("Comando inválido! Use ENTER, A ou Q");
-        }
-    }
-
-    // Game Over
-    private static void encerrarJogo() {
-        System.out.println("\nObrigado por jogar!");
-        System.out.println("Moedas ganhas nessa run: " + getMoedas());
-        InputManager.close();
     }
 }
