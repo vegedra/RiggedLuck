@@ -1,3 +1,15 @@
+/*
+    Rigged Luck Copyright (C) Pedro Ivo Rocha de Deus / Digital Cake Studio - All Rights Reserved
+
+    This source code is protected under international copyright law.  
+    All rights reserved and protected by the copyright holders.
+    This file is confidential and only available to authorized individuals with the
+    permission of the copyright holders.  If you encounter this file and do not have
+    permission, please contact the copyright holders and delete this file.
+
+    Main File
+*/
+
 package com.github.vegedra.core;
 
 import com.github.vegedra.cards.Card;
@@ -30,18 +42,18 @@ public class Main {
         // Cria as fontes para serem usadas
         createFont();
 
-        // Gerar tooltip mais rápido
+        // Carregar tooltips mais rapido
         ToolTipManager.sharedInstance().setInitialDelay(200);
         ToolTipManager.sharedInstance().setDismissDelay(10000);
 
-        // Cria a tela
+        // Criar a tela/UI
         createUI();
 
-        // Para gerar moedas passivamente
+        // Inicia o timer
         startPassiveIncome();
     }
 
-    // Cria e carrega as fontes
+    // Cria e carrega fontes
     public void createFont() {
         font1 = new Font("Cambria", Font.PLAIN, 32);
         font2 = new Font("Cambria", Font.PLAIN, 15);
@@ -58,7 +70,7 @@ public class Main {
         window.setLayout(null);
         window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
-        // Botão de confirmação fechar janela
+        // Botão de confirmação para fechar janela
         window.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
@@ -84,7 +96,7 @@ public class Main {
         clickerPanel.setBorder(null);
         window.add(clickerPanel);
 
-        // Carrega a imagem de fundo
+        // Carrega a imagem do clicker
         ImageIcon circle = new ImageIcon(
                 getClass().getResource("/images/circle.png"));
 
@@ -195,17 +207,19 @@ public class Main {
         timer.start();
     }
 
-    // Roleta uma carta nova
+    // Roletar uma carta nova
     public void rollCard() {
 
-        int cost = 10;
+        // Custo para roletar - Teste para balanceamento (100)
+        int cost = 100;
 
+        // Se nao tiver moedas suficiente
         if (player.getCoins() < cost) {
             showMessage("Moedas insuficientes!", Color.RED);
             return;
         }
 
-        // procura slot vazio
+        // Procura slot vazio
         int emptyIndex = -1;
         for (int i = 0; i < activeCards.length; i++) {
             if (activeCards[i] == null) {
@@ -279,6 +293,7 @@ public class Main {
             cardSlots[index].setToolTipText(tooltipText);
         }
 
+        // Recarrega e exibe
         cardSlots[index].revalidate();
         cardSlots[index].repaint();
     }
@@ -297,6 +312,7 @@ public class Main {
     // Mostrar mensagens no effectlabel
     public void showMessage(String message, Color color) {
 
+        // Exibe a mensagem e cor
         effectLabel.setText(message);
         effectLabel.setForeground(color);
 
@@ -317,6 +333,7 @@ public class Main {
     public class ClickerHandler implements ActionListener {
         public void actionPerformed(ActionEvent event) {
 
+            // Pega o evento
             String action = event.getActionCommand();
 
             switch (action) {
