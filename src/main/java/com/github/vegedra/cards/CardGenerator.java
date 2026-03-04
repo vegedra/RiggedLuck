@@ -7,7 +7,7 @@
     permission of the copyright holders.  If you encounter this file and do not have
     permission, please contact the copyright holders and delete this file.
 
-    Card Generator File
+    *TODO: Em vez de criar cartas manualmente, consultar a lista criada a partir do Json e selecionar uma com base na raridade e na sorte.
 */
 
 package com.github.vegedra.cards;

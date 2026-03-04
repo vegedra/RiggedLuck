@@ -19,11 +19,13 @@ public class Card {
     // Atributos
     public String id;
     public String name;
-    //public int cost;
-    public int value;           // Aumento de moedas por clique
-    public int coinsPerSecond;
+    //public int cost;              // Valor de compra (não sei o que fazer ainda)
+    public int value;               // Aumento de moedas por clique
+    public int coinsPerSecond;      // Aumento de moedas por segundo
     public String desc;
     //public boolean purchased;
+    public String rarity;           // TODO: Implementar depois
+    // TODO -> public Tradeoff tradeoff;
 
     // Construtor
     public Card(String id, String name, String desc, int value, int coinsPerSecond) {
