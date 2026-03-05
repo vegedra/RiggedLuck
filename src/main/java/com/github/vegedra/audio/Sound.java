@@ -1,3 +1,15 @@
+/*
+    Rigged Luck Copyright (C) Pedro Ivo Rocha de Deus / Digital Cake Studio - All Rights Reserved
+
+    This source code is protected under international copyright law.
+    All rights reserved and protected by the copyright holders.
+    This file is confidential and only available to authorized individuals with the
+    permission of the copyright holders.  If you encounter this file and do not have
+    permission, please contact the copyright holders and delete this file.
+
+    Sons e músicas 
+*/
+
 package com.github.vegedra.audio;
 
 import javax.sound.sampled.*;
@@ -141,6 +153,7 @@ public enum Sound {
         }
     }
 
+    // Teste
     public static void debug() {
         System.out.println(AudioSystem.getAudioFileTypes());
     }
