@@ -20,6 +20,7 @@ public class Player {
     private int coins = 0;
     private int clickValue = 1;    // Quantas moedas gera por clique
     private int luck = 50;        // Sorte
+    private int totalCPS = 0;
 
     // Getters
     public int getCoins() {
@@ -31,6 +32,7 @@ public class Player {
     public int getLuck() {
         return luck;
     }
+    public int getTotalCPS() { return totalCPS; }
     
     // Setters
     public void addCoins(int amount) {
@@ -45,7 +47,10 @@ public class Player {
         if (luck > 100) luck = 100;
         if (luck < 0) luck = 0;
     }
-    public void applyCard(Card c) {
-        clickValue += c.value;
+    public void applyCard(Card card) {
+        this.clickValue += card.value;
+        this.addCPS(card.coinsPerSecond);
     }
+    public void addCPS(int amount) { this.totalCPS += amount; }
+    public void removeCPS(int amount) { this.totalCPS -= amount; }
 }

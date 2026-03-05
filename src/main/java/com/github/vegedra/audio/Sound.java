@@ -6,7 +6,7 @@ import java.net.URL;
 
 /* Uso dentro do jogo:
     Tocar efeito sonoro: Sound.CLICK.play();
-    Tocar música: Sound.BG.playMusic();
+    Tocar música: Sound.BG1.playMusic();
     Mudar volume: Sound.musicVolume = Sound.Volume.HIGH;
                   Sound.updateMusicVolume();
  */
@@ -14,16 +14,18 @@ import java.net.URL;
 public enum Sound {
 
     // Efeitos sonoros
-    CLICK("/sounds/hit.wav", false),
-    HIT("/sounds/miss.wav", false),
+    CLICK("/audio/click.wav", false),
+    ROLL("/audio/roll.wav", false),
+    DISCARD("/audio/discard.wav", false),
+    //HIT("/sounds/hit.wav", false),
     // Música
-    BG1("/sounds/background1.wav", true),
-    BG2("/sounds/bg2.wav", true);
+    BG1("/audio/menu.wav", true),
+    BG2("/audio/game_music.wav", true);
 
     public enum Volume { MUTE, LOW, MEDIUM, HIGH }
 
     public static Volume soundVolume = Volume.MEDIUM;
-    public static Volume musicVolume = Volume.MEDIUM;
+    public static Volume musicVolume = Volume.LOW;
 
     private Clip clip;
     private final boolean isMusic;  // Se vai tocar uma música
@@ -35,7 +37,7 @@ public enum Sound {
 
         // Carrega o audio
         try {
-            URL url = getClass().getResource(path);
+            URL url = Sound.class.getResource(path);
             if (url == null) {
                 System.err.println("Áudio não encontrado: " + path);
                 return;
@@ -137,5 +139,9 @@ public enum Sound {
                 s.clip.close();
             }
         }
+    }
+
+    public static void debug() {
+        System.out.println(AudioSystem.getAudioFileTypes());
     }
 }

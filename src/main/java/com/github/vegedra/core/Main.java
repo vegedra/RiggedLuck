@@ -41,6 +41,9 @@ public class Main {
         // Cria a tela e interface
         ui.createUI(cHandler);
 
+        // Inicia o timer
+        gameManager.startPassiveIncome();
+
         // Carregar tooltips mais rapido
         ToolTipManager.sharedInstance().setInitialDelay(200);
         ToolTipManager.sharedInstance().setDismissDelay(10000);

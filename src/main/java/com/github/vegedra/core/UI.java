@@ -116,7 +116,7 @@ public class UI {
         window.add(luckLabel);
 
         // Botão da roleta
-        JButton rollButton = new JButton("Roletar (10 moedas)");
+        JButton rollButton = new JButton("Roletar (20 moedas)");
         rollButton.setBounds(500, 70, 200, 50);
         rollButton.setBackground(Color.yellow);
         rollButton.setFont(font2);

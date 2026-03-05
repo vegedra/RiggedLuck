@@ -24,6 +24,9 @@ public class GameManager {
         this.player = player;
         this.ui = ui;
         this.cHandler = cHandler;
+
+        // Toca música de fundo
+        Sound.BG1.playMusic();
     }
 
     // Atualizar labels
@@ -73,9 +76,8 @@ public class GameManager {
 
     // Roletar uma carta nova
     public void rollCard() {
-
-        // Custo para roletar - Teste para balanceamento (100)
-        int cost = 100;
+        // Custo para roletar
+        int cost = 20;
 
         // Se nao tiver moedas suficientes
         if (player.getCoins() < cost) {
@@ -100,6 +102,8 @@ public class GameManager {
 
         // Subtrai o custo da roleta
         player.addCoins(-cost);
+        // Toca sfx
+        Sound.ROLL.play();
 
         // Cria nova carta de acordo com Sorte atual
         Card newCard = generator.generateCard(player.getLuck());
@@ -163,8 +167,9 @@ public class GameManager {
     }
 
     public void handleClick() {
-        // Incrementa moedas ao clicar
+        // Incrementa moedas ao clicar e toca efeito sonoro
         player.addCoins(player.getClickValue());
+        Sound.CLICK.play();
 
         // Oscilação da sorte após cada clique
         int value = (int)(Math.random() * 5) - 2; // -2 até +2
@@ -179,20 +184,25 @@ public class GameManager {
         Card c = activeCards[index];
 
         if (c != null) {
-
-            int discardCost = Math.abs(c.value) * 2;
+            // Custo do descarte baseado nos valores da carta
+            int discardCost = (Math.abs(c.value) + c.coinsPerSecond) * 2;
 
             if (player.getCoins() >= discardCost) {
-
                 player.addCoins(-discardCost);
+
                 player.addClickValue(-c.value);
+                player.removeCPS(c.coinsPerSecond);
+
+                // Remove a carta do array
                 activeCards[index] = null;
 
+                // Atualiza a UI
                 updateCardUI(index);
                 updateCounter();
                 updateCPSLabel();
 
                 ui.showMessage("Carta descartada (-" + discardCost + ")", Color.green);
+                Sound.DISCARD.play();
             } else {
                 ui.showMessage("Moedas insuficientes para descartar!", Color.RED);
             }
