@@ -1,13 +1,12 @@
 /*
-    Rigged Luck Copyright (C) Pedro Ivo Rocha de Deus / Digital Cake Studio - All Rights Reserved
+    Copyright © 2026 [Pedro Ivo Rocha/Digital Cake Studio].
+    Todos os direitos reservados.
+    All rights reserved.
 
-    This source code is protected under international copyright law.  
-    All rights reserved and protected by the copyright holders.
-    This file is confidential and only available to authorized individuals with the
-    permission of the copyright holders.  If you encounter this file and do not have
-    permission, please contact the copyright holders and delete this file.
+    É proibida a reprodução, distribuição ou venda deste código
+    sem a permissão expressa do autor.
 
-    Main File
+    Main
 */
 
 package com.github.vegedra.core;

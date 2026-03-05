@@ -1,3 +1,14 @@
+/*
+    Copyright © 2026 [Pedro Ivo Rocha/Digital Cake Studio].
+    Todos os direitos reservados.
+    All rights reserved.
+
+    É proibida a reprodução, distribuição ou venda deste código
+    sem a permissão expressa do autor.
+
+    Gerenciador do jogo
+*/
+
 package com.github.vegedra.core;
 
 import com.github.vegedra.audio.Sound;
@@ -119,26 +130,33 @@ public class GameManager {
         ui.showMessage("Nova carta adquirida!", Color.GREEN);
     }
 
-    // Atualiza a UI das cartas
+    // Atualiza o slot das cartas
     public void updateCardUI(int index) {
 
+        // Limpa o slot
         ui.cardSlots[index].removeAll();
+
+        // Pega a carta do slot
         Card c = activeCards[index];
 
+        // Define o layout
         ui.cardSlots[index].setLayout(new BorderLayout());
 
+        // Se não houver carta
         if (c == null) {
             JLabel empty = new JLabel("Vazio", SwingConstants.CENTER);
             ui.cardSlots[index].add(empty, BorderLayout.CENTER);
             ui.cardSlots[index].setToolTipText(null); // remove tooltip se não houver carta
 
         } else {
+            // Exbibe carta e calcula valor do descarte
             int discardCost = (Math.abs(c.value) + c.coinsPerSecond) * 2;
             String valueText = (c.value >= 0 ? "+" : "") + c.value;
 
             // Mostra apenas o nome
             JLabel name = new JLabel(c.name, SwingConstants.CENTER);
 
+            // Descarte - atualiza UI
             JButton discard = new JButton("X");
             discard.setFocusPainted(false);
             discard.setMargin(new Insets(2,6,2,6));
@@ -166,6 +184,7 @@ public class GameManager {
         ui.cardSlots[index].repaint();
     }
 
+    // Clicker
     public void handleClick() {
         // Incrementa moedas ao clicar e toca efeito sonoro
         player.addCoins(player.getClickValue());
@@ -180,16 +199,21 @@ public class GameManager {
         ui.luckLabel.setText("Sorte: " + player.getLuck() + "%");
     }
 
+    // Descartar carta
     public void handleDiscard(int index) {
+        // Pega a carta no slot informado
         Card c = activeCards[index];
 
+        // Se existir carta
         if (c != null) {
             // Custo do descarte baseado nos valores da carta
             int discardCost = (Math.abs(c.value) + c.coinsPerSecond) * 2;
 
+            // Se tiver moedas, descarta
             if (player.getCoins() >= discardCost) {
                 player.addCoins(-discardCost);
 
+                // Retira os efeitos
                 player.addClickValue(-c.value);
                 player.removeCPS(c.coinsPerSecond);
 
@@ -206,12 +230,11 @@ public class GameManager {
             } else {
                 ui.showMessage("Moedas insuficientes para descartar!", Color.RED);
             }
-
-            ui.counterLabel.setText(player.getCoins() + " moedas");
+            updateCounter();
         }
     }
 
-    // Fechar jogo
+    // Parar timers e sons
     public void shutdown() {
         if (timer != null) timer.stop();
         if (messageTimer != null) messageTimer.stop();

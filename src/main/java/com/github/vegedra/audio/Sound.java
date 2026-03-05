@@ -1,9 +1,12 @@
 /*
-Copyright © 2026 [Pedro Ivo Rocha/Digital Cake Studio].
-Todos os direitos reservados.
-All rights reserved.
+    Copyright © 2026 [Pedro Ivo Rocha/Digital Cake Studio].
+    Todos os direitos reservados.
+    All rights reserved.
 
-É proibida a reprodução, distribuição ou venda deste código, no todo ou em parte, sem a permissão expressa do autor.
+    É proibida a reprodução, distribuição ou venda deste código
+    sem a permissão expressa do autor.
+
+    Sistema de som e música
 */
 
 package com.github.vegedra.audio;
@@ -106,12 +109,24 @@ public enum Sound {
         // Ganho em decibel
         FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
 
-        float dB = switch (volume) {
-            case LOW -> -25f;
-            case MEDIUM -> -15f;
-            case HIGH -> -5f;
-            case MUTE -> gain.getMinimum();
-        };
+        // Controla o volume
+        float dB;
+        switch (volume) {
+            case LOW:
+                dB = -25f;
+                break;
+            case MEDIUM:
+                dB = -15f;
+                break;
+            case HIGH:
+                dB = -5f;
+                break;
+            case MUTE:
+                dB = gain.getMinimum();
+                break;
+            default:
+                throw new IllegalArgumentException("Volume inválido: " + volume);
+        }
 
         gain.setValue(dB);
     }

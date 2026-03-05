@@ -1,3 +1,14 @@
+/*
+    Copyright © 2026 [Pedro Ivo Rocha/Digital Cake Studio].
+    Todos os direitos reservados.
+    All rights reserved.
+
+    É proibida a reprodução, distribuição ou venda deste código
+    sem a permissão expressa do autor.
+
+    User Interface
+*/
+
 package com.github.vegedra.core;
 
 import javax.swing.*;
@@ -13,8 +24,15 @@ public class UI {
     JPanel[] cardSlots = new JPanel[4];
     Font font1, font2;
 
+    // Construtor
     public UI(Player player) {
         this.player = player;
+    }
+
+    // Cria e carrega fontes
+    public void createFont() {
+        font1 = new Font("Cambria", Font.PLAIN, 32);
+        font2 = new Font("Cambria", Font.PLAIN, 15);
     }
 
     // UI do jogo (JFrame)
@@ -146,22 +164,17 @@ public class UI {
         window.setVisible(true);
     }
 
-    // Cria e carrega fontes
-    public void createFont() {
-        font1 = new Font("Cambria", Font.PLAIN, 32);
-        font2 = new Font("Cambria", Font.PLAIN, 15);
-    }
-
     // Mostrar mensagens no effectlabel
     public void showMessage(String message, Color color) {
 
+        // Aplica o texto e cor
         effectLabel.setText(message);
         effectLabel.setForeground(color);
 
+        // Duração de mensagem
         if (messageTimer != null && messageTimer.isRunning()) {
             messageTimer.stop();
         }
-
         messageTimer = new Timer(3000, e -> effectLabel.setText(""));
         messageTimer.setRepeats(false);
         messageTimer.start();
