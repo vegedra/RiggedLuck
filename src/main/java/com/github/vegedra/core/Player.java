@@ -21,6 +21,13 @@ public class Player {
     private int luck = 50;        // Sorte
     private int totalCPS = 0;
 
+    // Resetar
+    public void reset() {
+        coins = 0;
+        luck = 50;
+        clickValue = 1;
+    }
+
     // Getters
     public int getCoins() {
         return coins;

@@ -22,22 +22,28 @@ import java.awt.event.ActionListener;
 public class GameManager {
 
     // Variaveis e objetos
-    private Player player;
+    public Player player;
     private UI ui;
     private Card[] activeCards = new Card[4];
     private CardGenerator generator = new CardGenerator();
     public Timer timer, messageTimer;
     private ActionListener cHandler;
-    private int secondsElapsed = 0;                     // Tempo de jogo
+    public int secondsElapsed = 0;                     // Tempo de jogo
+    public boolean firstTimePlaying = false;
+
+    // Estados de jogo
+    public enum GameState {
+        TITLE,
+        GAME,
+        GAME_OVER
+    }
+    public GameState state = GameState.TITLE;
 
     // Construtor
     public GameManager(Player player, UI ui, ActionListener cHandler) {
         this.player = player;
         this.ui = ui;
         this.cHandler = cHandler;
-
-        // Toca música de fundo
-        Sound.BG1.playMusic();
     }
 
     // Atualizar labels
@@ -46,6 +52,9 @@ public class GameManager {
     }
     public void updateCPSLabel() {
         ui.cpsLabel.setText("Moedas por segundo: " + getTotalCPS());
+    }
+    public void updateLuckLabel() {
+        ui.luckLabel.setText("Sorte: " + player.getLuck() + "%");
     }
 
     // Timer (para geração passiva e tempo de jogo)
@@ -78,11 +87,22 @@ public class GameManager {
         return total;
     }
     // Formatar tempo de jogo - mostrar no game over
-    private String formatTime(int totalSeconds) {
+    public String formatTime(int totalSeconds) {
         int hours = totalSeconds / 3600;
         int minutes = (totalSeconds % 3600) / 60;
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+    }
+
+    // Verificar condições de game over
+    private void checkGameOver() {
+        if (player.getLuck() <= 0 || player.getCoins() < 0) {
+            // Game over
+            state = GameState.GAME_OVER;
+
+            // Notifica o VisibilityManager (precisa ser acessível)
+            // Isso será tratado pelo Main através de um timer ou callback (TODO!)
+        }
     }
 
     // Roletar uma carta nova
@@ -110,6 +130,8 @@ public class GameManager {
             ui.showMessage("Limite de cartas atingido!", Color.RED);
             return;
         }
+
+        //  TODO: chance baixa de spawnar um cobrador instantaneamente
 
         // Subtrai o custo da roleta
         player.addCoins(-cost);
@@ -234,11 +256,31 @@ public class GameManager {
         }
     }
 
+    // Reiniciar o jogo
+    public void resetGame() {
+        // Reset player
+        player.reset();
+
+        // Limpa cartas ativas
+        for (int i = 0; i < activeCards.length; i++) {
+            activeCards[i] = null;
+            updateCardUI(i);
+        }
+
+        // Reinicia o timer
+        secondsElapsed = 0;
+        firstTimePlaying = false;
+
+        // Atualiza UI
+        updateCounter();
+        updateCPSLabel();
+        updateLuckLabel();
+    }
+
     // Parar timers e sons
     public void shutdown() {
         if (timer != null) timer.stop();
         if (messageTimer != null) messageTimer.stop();
-
         Sound.closeAll();
     }
 }

@@ -35,8 +35,8 @@ public enum Sound {
 
     public enum Volume { MUTE, LOW, MEDIUM, HIGH }
 
-    public static Volume soundVolume = Volume.MEDIUM;
-    public static Volume musicVolume = Volume.LOW;
+    public static Volume soundVolume = Volume.HIGH;
+    public static Volume musicVolume = Volume.MEDIUM;
 
     private Clip clip;
     private final boolean isMusic;  // Se vai tocar uma música

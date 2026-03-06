@@ -18,14 +18,15 @@ import java.awt.event.ActionListener;
 public class Main {
 
     // Variaveis e objetos
-    private UI ui;
+    private static UI ui;
     private static GameManager gameManager;
     private Player player = new Player();
     private ClickerHandler cHandler = new ClickerHandler();
+    private static VisibilityManager vm;
 
     // Inicio
     public static void main(String[] args) {
-        new Main();
+        SwingUtilities.invokeLater(() -> new Main());
     }
 
     // Construtor
@@ -37,15 +38,14 @@ public class Main {
         gameManager = new GameManager(player, ui, cHandler);
         UI.gameManager = gameManager;
 
+        // Cria o visibility manager
+        vm = new VisibilityManager(ui, gameManager);
+
         // Cria a tela e interface
         ui.createUI(cHandler);
 
-        // Inicia o timer
-        gameManager.startPassiveIncome();
-
-        // Carregar tooltips mais rapido
-        ToolTipManager.sharedInstance().setInitialDelay(200);
-        ToolTipManager.sharedInstance().setDismissDelay(10000);
+        // Carrega a tela inicial
+        vm.showTitleScreen();
     }
 
     // Ações e eventos (click)
@@ -57,7 +57,26 @@ public class Main {
 
             // Eventos
             switch (action) {
-                // Clique no circulo
+                // Iniciar jogo - menu inicial
+                case "start":
+                    vm.showGameScreen();
+                    break;
+
+                // Sair do jogo - menu inicial
+                case "exit":
+                    int option = JOptionPane.showConfirmDialog(
+                            ui.window,
+                            "Tem certeza que deseja sair?",
+                            "Sair",
+                            JOptionPane.YES_NO_OPTION
+                    );
+                    if (option == JOptionPane.YES_OPTION) {
+                        gameManager.shutdown();
+                        System.exit(0);
+                    }
+                    break;
+
+                // Clique no circulo - game
                 case "clicker":
                     gameManager.handleClick();
                     break;
