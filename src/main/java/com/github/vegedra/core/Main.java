@@ -23,6 +23,7 @@ public class Main {
     private Player player = new Player();
     private ClickerHandler cHandler = new ClickerHandler();
     private static VisibilityManager vm;
+    public static int gameMode;
 
     // Inicio
     public static void main(String[] args) {
@@ -59,7 +60,13 @@ public class Main {
             switch (action) {
                 // Iniciar jogo - menu inicial
                 case "start":
-                    vm.showGameScreen();
+                    // Define o modo de jogo
+                    gameMode = ui.gameModeSelect();
+
+                    if (gameMode != -1) {
+                        gameManager.configureGameMode(gameMode);
+                        vm.showGameScreen();
+                    }
                     break;
 
                 // Sair do jogo - menu inicial

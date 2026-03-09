@@ -27,8 +27,7 @@ public class UI {
     public JPanel[] cardSlots = new JPanel[4];
 
     // Panels for title screen and game screen (to be used by VisibilityManager)
-    public JPanel titlePanel, gamePanel, backgroundPanel, titleNamePanel, startButtonPane;
-
+    public JPanel titlePanel, gamePanel;
     private Font font1, font2;
 
     // Construtor
@@ -250,10 +249,54 @@ public class UI {
     }
 
     // Mensagem de contexto da historia
-    public void introMessage() {
-        JOptionPane.showMessageDialog(window,
-                "Ao iniciar um ritual com o objetivo de ficar rico, você se encontra preso no mesmo...\nConsiga o máximo de moedas que conseguir antes de encontrar seu iminente fim!",
+    public void introMessage(int mode) {
+        switch(mode) {
+            // Normal
+            case 1:
+                JOptionPane.showMessageDialog(window,
+                        "Ao iniciar um ritual com o objetivo de ficar rico, você se encontra preso no mesmo...\nConsiga o máximo de moedas que conseguir antes de encontrar seu iminente fim!",
+                        "História",
+                        JOptionPane.PLAIN_MESSAGE);
+            // Time Attack
+            case 2:
+                JOptionPane.showMessageDialog(window,
+                "Ao iniciar um ritual com o objetivo de ficar rico, você se encontra preso no mesmo...\nConsiga o número de moedas solicitado dentro do tempo limite!",
                 "História",
                 JOptionPane.PLAIN_MESSAGE);
+            // Maldição
+            case 3:
+                JOptionPane.showMessageDialog(window,
+                        "Ao iniciar um ritual com o objetivo de ficar rico, você se encontra preso no mesmo...\nConsiga juntar 1 bilhão de moedas o mais rápido que conseguir!",
+                        "História",
+                        JOptionPane.PLAIN_MESSAGE);
+        }
+    }
+
+    // Opção de modo de jogo
+    public int gameModeSelect() {
+        // Texto
+        String message =
+                "<html><b>Escolha o modo de jogo:</b><br><br>" +
+                        "<b>Normal</b> - Modo padrão infinito.<br>" +
+                        "<b>Time-Attack</b> - Consiga moedas antes do tempo acabar!<br>" +
+                        "<b>Sandbox</b> - Consiga juntar 1 bilhão de moedas o mais rápido possível!<br>" +
+                        "</html>";
+        // Opções
+        Object[] options = {
+                "Normal",
+                "Time-Attack",
+                "Maldição"
+        };
+
+        return JOptionPane.showOptionDialog(
+                null,
+                message,
+                "Modo de Jogo",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                options,
+                null
+        );
     }
 }

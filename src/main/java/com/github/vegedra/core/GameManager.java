@@ -34,6 +34,7 @@ public class GameManager {
     // Estados de jogo
     public enum GameState {
         TITLE,
+        MODE_SELECT,
         GAME,
         GAME_OVER
     }
@@ -92,6 +93,24 @@ public class GameManager {
         int minutes = (totalSeconds % 3600) / 60;
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+    }
+
+    // Altera o modo de jogo
+    public void configureGameMode(int mode) {
+        switch (mode) {
+            // Normal
+            case 0:
+                ui.introMessage(1);
+                break;
+            // Time Attack
+            case 1:
+                ui.introMessage(2);
+                break;
+            // Maldição
+            case 2:
+                ui.introMessage(3);
+                break;
+        }
     }
 
     // Verificar condições de game over

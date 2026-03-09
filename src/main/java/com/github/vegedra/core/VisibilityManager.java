@@ -54,7 +54,7 @@ public class VisibilityManager {
 
         // Mostra o texto inicial do jogo (apenas na primeira vez)
         if (gameManager != null && !gameManager.firstTimePlaying) {
-            SwingUtilities.invokeLater(() -> ui.introMessage());
+            SwingUtilities.invokeLater(() -> ui.introMessage(1));
             gameManager.firstTimePlaying = true;
         }
 
