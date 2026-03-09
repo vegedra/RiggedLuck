@@ -30,14 +30,15 @@ public class GameManager {
     private ActionListener cHandler;
     public int secondsElapsed = 0;                     // Tempo de jogo
     public boolean firstTimePlaying = false;
+    public int currentGameMode;   // stores the chosen mode (0,1,2)
 
     // Estados de jogo
     public enum GameState {
         TITLE,
-        MODE_SELECT,
         GAME,
         GAME_OVER
     }
+    // Estado padrão ao iniciar
     public GameState state = GameState.TITLE;
 
     // Construtor
@@ -95,25 +96,14 @@ public class GameManager {
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
 
-    // Altera o modo de jogo
+    // Altera o modo de jogo - TODO
     public void configureGameMode(int mode) {
-        switch (mode) {
-            // Normal
-            case 0:
-                ui.introMessage(1);
-                break;
-            // Time Attack
-            case 1:
-                ui.introMessage(2);
-                break;
-            // Maldição
-            case 2:
-                ui.introMessage(3);
-                break;
-        }
+        currentGameMode = mode;
+        // Any mode‑specific setup (e.g., timers, goals) can be added here later.
+        // The intro message is now shown in VisibilityManager.showGameScreen()
     }
 
-    // Verificar condições de game over
+    // Verifica condições de game over
     private void checkGameOver() {
         if (player.getLuck() <= 0 || player.getCoins() < 0) {
             // Game over
@@ -173,7 +163,6 @@ public class GameManager {
 
     // Atualiza o slot das cartas
     public void updateCardUI(int index) {
-
         // Limpa o slot
         ui.cardSlots[index].removeAll();
 

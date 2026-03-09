@@ -21,76 +21,65 @@ public class VisibilityManager {
     private UI ui;
     private GameManager gameManager;
 
-    // Constructor
+    // Construtor
     public VisibilityManager(UI userInterface, GameManager gm) {
-        // Para usar a classe UI aqui
         ui = userInterface;
         gameManager = gm;
     }
 
-    // Mostrar a tela inicial
+    // Mostra a tela do menu inicial
     public void showTitleScreen() {
-        // Toca música de fundo
         Sound.BG1.playMusic();
+        ui.switchTo("title");
 
-        // Mostra título, esconde game
-        ui.titlePanel.setVisible(true);
-        ui.gamePanel.setVisible(false);
-
-        // Atualiza o estado do jogo
         if (gameManager != null) {
             gameManager.state = GameManager.GameState.TITLE;
         }
     }
 
-    // Mostrar a tela de jogo
+    // Mostra a tela de jogo
     public void showGameScreen() {
-        // Toca música de fundo
         Sound.BG2.playMusic();
+        ui.switchTo("game");    // CardLayout shows game panel
 
-        // Esconde título, mostra game
-        ui.titlePanel.setVisible(false);
-        ui.gamePanel.setVisible(true);
-
-        // Mostra o texto inicial do jogo (apenas na primeira vez)
+        // Mostra a mensagem inicial
         if (gameManager != null && !gameManager.firstTimePlaying) {
-            SwingUtilities.invokeLater(() -> ui.introMessage(1));
+            // Usa o modo de jogo atual
+            ui.introMessage(gameManager.currentGameMode);
             gameManager.firstTimePlaying = true;
         }
 
-        // Inicia o timer se ainda não foi iniciado
+        // Começa o timer
         if (gameManager != null && gameManager.timer == null) {
             gameManager.startPassiveIncome();
         }
 
-        // Carregar tooltips mais rapido
+        // Carregar tooltips
         ToolTipManager.sharedInstance().setInitialDelay(200);
         ToolTipManager.sharedInstance().setDismissDelay(10000);
 
-        // Atualiza o estado do jogo
         if (gameManager != null) {
             gameManager.state = GameManager.GameState.GAME;
         }
     }
 
-    // Mostrar tela de game over - TODO
+    // Mostra a tela de game over
     public void showGameOverScreen() {
         // Para o timer
         if (gameManager != null && gameManager.timer != null) {
             gameManager.timer.stop();
         }
 
-        // Mostra mensagem de game over
+        // Mostra a mensagem de game over
         JOptionPane.showMessageDialog(ui.window,
                 "Game Over! Você sobreviveu por " + gameManager.formatTime(gameManager.secondsElapsed) +
                         "\nTotal de moedas ganhas: " + gameManager.player.getCoins(),
                 "Fim de Jogo",
                 JOptionPane.INFORMATION_MESSAGE);
 
-        // Volta para a tela inicial
+        // Retorna para a tela inicial
         showTitleScreen();
 
-        // Atualiza o estado
         if (gameManager != null) {
             gameManager.state = GameManager.GameState.GAME_OVER;
         }

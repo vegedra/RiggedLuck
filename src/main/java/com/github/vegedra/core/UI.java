@@ -6,7 +6,7 @@
     É proibida a reprodução, distribuição ou venda deste código
     sem a permissão expressa do autor.
 
-    User Interface
+    Criação da tela e interface
 */
 
 package com.github.vegedra.core;
@@ -26,9 +26,10 @@ public class UI {
     public JLabel counterLabel, effectLabel, luckLabel, cpsLabel;
     public JPanel[] cardSlots = new JPanel[4];
 
-    // Panels for title screen and game screen (to be used by VisibilityManager)
     public JPanel titlePanel, gamePanel;
     private Font font1, font2;
+    private CardLayout cardLayout;          // reference to the layout manager
+    private JPanel mainPanel;                // container that uses CardLayout
 
     // Construtor
     public UI(Player player) {
@@ -36,21 +37,21 @@ public class UI {
     }
 
     // Cria e carrega fontes
-    public void createFont() {
+    private void createFont() {
         font1 = new Font("Cambria", Font.PLAIN, 32);
         font2 = new Font("Cambria", Font.PLAIN, 15);
     }
 
-    // UI do jogo (JFrame)
+    // Cria a interface do jogo
     public void createUI(Main.ClickerHandler cHandler) {
         // Cria as fontes
         createFont();
 
-        // Carrega o FlatLaf (deixa o swing mais bonito)
+        // Usa o FlatLaf para deixar o Swing mais bonito
         try {
-            UIManager.setLookAndFeel( new FlatLightLaf() );
-        } catch( Exception ex ) {
-            System.err.println( "Erro em iniciar o FlatLaf" );
+            UIManager.setLookAndFeel(new FlatLightLaf());
+        } catch (Exception ex) {
+            System.err.println("Erro ao iniciar o FlatLaf");
         }
 
         // Criação da janela do jogo
@@ -58,52 +59,47 @@ public class UI {
         window.setSize(800, 600);
         window.setResizable(false);
         window.setTitle("Rigged Luck");
-        window.getContentPane().setBackground(Color.white);
-        window.setLayout(null);
         window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         // Botão de confirmação para fechar janela
         window.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-                int option = javax.swing.JOptionPane.showConfirmDialog(
+                int option = JOptionPane.showConfirmDialog(
                         window,
                         "Tem certeza que deseja sair do jogo?",
                         "Fechar jogo",
-                        javax.swing.JOptionPane.YES_NO_OPTION,
-                        javax.swing.JOptionPane.QUESTION_MESSAGE
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE
                 );
-
-                // Fecha o jogo
-                if (option == javax.swing.JOptionPane.YES_OPTION) {
+                if (option == JOptionPane.YES_OPTION) {
                     if (gameManager != null) {
                         gameManager.shutdown();
                     }
                     System.exit(0);
                 }
-                // Se escolher "Não", a janela permanece aberta
             }
         });
 
-        // Game Panel (jogo)
-        gamePanel = new JPanel();
-        gamePanel.setBounds(0, 0, 800, 600);
-        gamePanel.setLayout(null);
-        gamePanel.setBackground(Color.white);
-        gamePanel.setVisible(false); // Start hidden, title screen visible first
+        // Container principal (cardLayout)
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
+        mainPanel.setPreferredSize(new Dimension(800, 600));
+        window.setContentPane(mainPanel);
 
-        // Clicker (imagem)
+        // Game Panel
+        gamePanel = new JPanel();
+        gamePanel.setLayout(null);  // absolute positioning
+        gamePanel.setBackground(Color.white);
+
+        // Clicker
         JPanel clickerPanel = new JPanel();
         clickerPanel.setBounds(80, 250, 250, 255);
         clickerPanel.setBackground(Color.white);
         clickerPanel.setBorder(null);
         gamePanel.add(clickerPanel);
-
-        // Carrega a imagem do clicker
-        ImageIcon circle = new ImageIcon(
-                getClass().getResource("/images/circle.png"));
-
-        // Cria o botão para a imagem
+        // Imagem do clicker
+        ImageIcon circle = new ImageIcon(getClass().getResource("/images/circle.png"));
         JButton clickerButton = new JButton();
         clickerButton.setBackground(Color.white);
         clickerButton.setFocusPainted(false);
@@ -113,29 +109,30 @@ public class UI {
         clickerButton.setActionCommand("clicker");
         clickerPanel.add(clickerButton);
 
-        // Panel para o contador
+        // Counter panel
         JPanel counterPanel = new JPanel();
         counterPanel.setBounds(80, 120, 200, 100);
         counterPanel.setBackground(Color.white);
         counterPanel.setLayout(new GridLayout(2, 1));
         gamePanel.add(counterPanel);
 
-        // Texto para o contador de moedas e efeitos (abaixo)
+        // Counter label
         counterLabel = new JLabel(player.getCoins() + " moedas");
         counterLabel.setForeground(Color.black);
         counterLabel.setFont(font1);
         counterPanel.add(counterLabel);
 
+        // Effect panel (textos e mensagens)
         JPanel effectPanel = new JPanel();
-        effectPanel.setLayout(new GridLayout(2,1));
+        effectPanel.setLayout(new GridLayout(2, 1));
         effectPanel.setBackground(Color.white);
         counterPanel.add(effectPanel);
-
+        // Effect label
         effectLabel = new JLabel("");
         effectLabel.setFont(font2);
         effectLabel.setForeground(Color.darkGray);
         effectLabel.setHorizontalAlignment(SwingConstants.LEFT);
-
+        // Coins per Second
         cpsLabel = new JLabel("Moedas por segundo: 0");
         cpsLabel.setFont(font2);
         cpsLabel.setForeground(Color.gray);
@@ -144,7 +141,7 @@ public class UI {
         effectPanel.add(effectLabel);
         effectPanel.add(cpsLabel);
 
-        // Sorte
+        // Luck label
         luckLabel = new JLabel("Sorte: " + player.getLuck() + "%");
         luckLabel.setBounds(500, 30, 100, 50);
         luckLabel.setForeground(Color.black);
@@ -152,7 +149,7 @@ public class UI {
         luckLabel.setToolTipText("Quanto maior a sorte, melhores os resultados da roleta!");
         gamePanel.add(luckLabel);
 
-        // Botão da roleta
+        // Roll button
         JButton rollButton = new JButton("Sortear (20 moedas)");
         rollButton.setBounds(500, 70, 200, 50);
         rollButton.setBackground(Color.yellow);
@@ -162,7 +159,7 @@ public class UI {
         rollButton.addActionListener(cHandler);
         gamePanel.add(rollButton);
 
-        // Cartas
+        // Slots das cartas
         JPanel cardPanel = new JPanel();
         cardPanel.setBounds(500, 250, 250, 250);
         cardPanel.setLayout(new GridLayout(4, 1));
@@ -171,20 +168,16 @@ public class UI {
         for (int i = 0; i < 4; i++) {
             cardSlots[i] = new JPanel();
             cardSlots[i].setBorder(BorderFactory.createLineBorder(Color.BLACK));
-
             JLabel empty = new JLabel("Vazio", SwingConstants.CENTER);
             cardSlots[i].add(empty);
-
             cardPanel.add(cardSlots[i]);
         }
         gamePanel.add(cardPanel);
 
         // Menu Inicial
         titlePanel = new JPanel();
-        titlePanel.setBounds(0, 0, 800, 600);
-        titlePanel.setBackground(Color.white);
         titlePanel.setLayout(null);
-        titlePanel.setVisible(true);
+        titlePanel.setBackground(Color.white);
 
         JLabel titleLabel = new JLabel("Rigged Luck", SwingConstants.CENTER);
         titleLabel.setBounds(250, 150, 300, 50);
@@ -192,18 +185,9 @@ public class UI {
         titleLabel.setForeground(Color.black);
         titlePanel.add(titleLabel);
 
-        /*
-        JLabel subtitleLabel = new JLabel("x");
-        subtitleLabel.setBounds(250, 200, 300, 30);
-        subtitleLabel.setFont(new Font("Cambria", Font.PLAIN, 16));
-        subtitleLabel.setForeground(Color.gray);
-        titlePanel.add(subtitleLabel);
-        */
-
         JButton startButton = new JButton("Iniciar Jogo");
         startButton.setBounds(300, 300, 200, 50);
         startButton.setFont(new Font("Cambria", Font.BOLD, 18));
-        //startButton.setBackground(Color.green);
         startButton.setFocusPainted(false);
         startButton.setActionCommand("start");
         startButton.addActionListener(cHandler);
@@ -212,34 +196,36 @@ public class UI {
         JButton exitButton = new JButton("Sair");
         exitButton.setBounds(300, 370, 200, 50);
         exitButton.setFont(new Font("Cambria", Font.BOLD, 18));
-        //exitButton.setBackground(Color.red);
         exitButton.setFocusPainted(false);
         exitButton.setActionCommand("exit");
         exitButton.addActionListener(cHandler);
         titlePanel.add(exitButton);
 
-        JLabel versionLabel = new JLabel("Versão 0.0.2 - © 2026 Digital Cake Studio", SwingConstants.CENTER);
-        versionLabel.setBounds(250, 500, 300, 30);
+        JLabel versionLabel = new JLabel("Versão 0.0.3 - © 2026 Digital Cake Studio", SwingConstants.CENTER);
+        versionLabel.setBounds(245, 500, 300, 30);
         versionLabel.setFont(new Font("Cambria", Font.PLAIN, 16));
         versionLabel.setForeground(Color.gray);
         titlePanel.add(versionLabel);
 
-        // Adiciona os panels no window
-        window.add(titlePanel);
-        window.add(gamePanel);
+        // Adiciona os panels pro cardLayout
+        mainPanel.add(titlePanel, "title");
+        mainPanel.add(gamePanel, "game");
 
-        // Carrega e exibe tudo
+        window.pack();  // Ajusta a janela pro tamanho selecionado
         window.setVisible(true);
     }
 
-    // Mostrar mensagens no effectlabel
-    public void showMessage(String message, Color color) {
+    // Trocar telas no VisibilityManager
+    public void switchTo(String panelName) {
+        cardLayout.show(mainPanel, panelName);
+    }
 
-        // Aplica o texto e cor
+    // Mostrar mensagens
+    public void showMessage(String message, Color color) {
         effectLabel.setText(message);
         effectLabel.setForeground(color);
 
-        // Duração de mensagem
+        // Reinicia o timer da exibição das mensagens
         if (messageTimer != null && messageTimer.isRunning()) {
             messageTimer.stop();
         }
@@ -248,45 +234,42 @@ public class UI {
         messageTimer.start();
     }
 
-    // Mensagem de contexto da historia
+    // Mensagem inicial
     public void introMessage(int mode) {
-        switch(mode) {
+        String title = "História";
+        String msg = "";
+
+        switch (mode) {
             // Normal
-            case 1:
-                JOptionPane.showMessageDialog(window,
-                        "Ao iniciar um ritual com o objetivo de ficar rico, você se encontra preso no mesmo...\nConsiga o máximo de moedas que conseguir antes de encontrar seu iminente fim!",
-                        "História",
-                        JOptionPane.PLAIN_MESSAGE);
+            case 0:
+                msg = "Ao iniciar um ritual com o objetivo de ficar rico, você se encontra preso no mesmo...\n" +
+                        "Consiga o máximo de moedas que conseguir antes de encontrar seu iminente fim!";
+                break;
             // Time Attack
+            case 1:
+                msg = "Ao iniciar um ritual com o objetivo de ficar rico, você se encontra preso no mesmo...\n" +
+                        "Consiga o número de moedas solicitado dentro do tempo limite!";
+                break;
+            // Maldição (Sandbox)
             case 2:
-                JOptionPane.showMessageDialog(window,
-                "Ao iniciar um ritual com o objetivo de ficar rico, você se encontra preso no mesmo...\nConsiga o número de moedas solicitado dentro do tempo limite!",
-                "História",
-                JOptionPane.PLAIN_MESSAGE);
-            // Maldição
-            case 3:
-                JOptionPane.showMessageDialog(window,
-                        "Ao iniciar um ritual com o objetivo de ficar rico, você se encontra preso no mesmo...\nConsiga juntar 1 bilhão de moedas o mais rápido que conseguir!",
-                        "História",
-                        JOptionPane.PLAIN_MESSAGE);
+                msg = "Ao iniciar um ritual com o objetivo de ficar rico, você se encontra preso no mesmo...\n" +
+                        "Consiga juntar 1 bilhão de moedas o mais rápido que conseguir!";
+                break;
+            default:
+                return;
         }
+        JOptionPane.showMessageDialog(window, msg, title, JOptionPane.PLAIN_MESSAGE);
     }
 
-    // Opção de modo de jogo
+    // Seleção do modo de jogo
     public int gameModeSelect() {
-        // Texto
         String message =
                 "<html><b>Escolha o modo de jogo:</b><br><br>" +
                         "<b>Normal</b> - Modo padrão infinito.<br>" +
                         "<b>Time-Attack</b> - Consiga moedas antes do tempo acabar!<br>" +
-                        "<b>Sandbox</b> - Consiga juntar 1 bilhão de moedas o mais rápido possível!<br>" +
+                        "<b>Maldição</b> - Consiga juntar 1 bilhão de moedas o mais rápido possível!<br>" +
                         "</html>";
-        // Opções
-        Object[] options = {
-                "Normal",
-                "Time-Attack",
-                "Maldição"
-        };
+        Object[] options = { "Normal", "Time-Attack", "Maldição" };
 
         return JOptionPane.showOptionDialog(
                 null,

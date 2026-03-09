@@ -11,6 +11,8 @@
 
 package com.github.vegedra.core;
 
+import com.github.vegedra.audio.Sound;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -60,10 +62,13 @@ public class Main {
             switch (action) {
                 // Iniciar jogo - menu inicial
                 case "start":
-                    // Define o modo de jogo
+                    // Define o modo de jogo e toca sfx
                     gameMode = ui.gameModeSelect();
+                    Sound.CLICK.play();
 
+                    // Reseta o jogo e o inicia, trocando de tela e fazendo as mudanças pro modo de jogo
                     if (gameMode != -1) {
+                        gameManager.resetGame();
                         gameManager.configureGameMode(gameMode);
                         vm.showGameScreen();
                     }
@@ -81,6 +86,7 @@ public class Main {
                         gameManager.shutdown();
                         System.exit(0);
                     }
+                    Sound.CLICK.play();
                     break;
 
                 // Clique no circulo - game
