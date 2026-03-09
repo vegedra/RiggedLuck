@@ -16,7 +16,7 @@ import com.github.vegedra.cards.Card;
 public class Player {
 
     // Atributos
-    private int coins = 0;
+    private long coins = 0;        // Melhor usar globalmente ou criar um novo por modo?
     private int clickValue = 1;    // Quantas moedas gera por clique
     private int luck = 50;        // Sorte
     private int totalCPS = 0;
