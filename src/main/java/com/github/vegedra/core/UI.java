@@ -11,6 +11,8 @@
 
 package com.github.vegedra.core;
 
+import com.formdev.flatlaf.FlatLightLaf;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -44,6 +46,13 @@ public class UI {
     public void createUI(Main.ClickerHandler cHandler) {
         // Cria as fontes
         createFont();
+
+        // Carrega o FlatLaf (deixa o swing mais bonito)
+        try {
+            UIManager.setLookAndFeel( new FlatLightLaf() );
+        } catch( Exception ex ) {
+            System.err.println( "Erro em iniciar o FlatLaf" );
+        }
 
         // Criação da janela do jogo
         window = new JFrame();
