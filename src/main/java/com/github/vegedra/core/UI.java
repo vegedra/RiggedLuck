@@ -146,7 +146,7 @@ public class UI {
         luckLabel.setBounds(500, 30, 100, 50);
         luckLabel.setForeground(Color.black);
         luckLabel.setFont(font2);
-        luckLabel.setToolTipText("Quanto maior a sorte, melhores os resultados da roleta!");
+        luckLabel.setToolTipText("Quanto maior a sorte, melhores os resultados da roleta!\nNão deixe ela chegar em 0!");
         gamePanel.add(luckLabel);
 
         // Roll button
