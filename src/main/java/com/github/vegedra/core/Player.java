@@ -18,7 +18,7 @@ public class Player {
     // Atributos
     private long coins = 0;        // Melhor usar globalmente ou criar um novo por modo?
     private int clickValue = 1;    // Quantas moedas gera por clique
-    private int luck = 50;        // Sorte
+    private double luck = 50;        // Sorte
     private int totalCPS = 0;
 
     // Resetar
@@ -29,15 +29,13 @@ public class Player {
     }
 
     // Getters
-    public int getCoins() {
+    public long getCoins() {
         return coins;
     }
     public int getClickValue() {
         return clickValue;
     }
-    public int getLuck() {
-        return luck;
-    }
+    public int getLuck() { return (int)luck; }
     public int getTotalCPS() { return totalCPS; }
     
     // Setters

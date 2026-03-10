@@ -38,11 +38,14 @@ public class Main {
         ui = new UI(player);
 
         // Cria o gameManager
-        gameManager = new GameManager(player, ui, cHandler);
+        gameManager = new GameManager(player, ui, cHandler, null);
         UI.gameManager = gameManager;
 
         // Cria o visibility manager
         vm = new VisibilityManager(ui, gameManager);
+
+        // Configura o vm no gameManager
+        gameManager.setVisibilityManager(vm);
 
         // Cria a tela e interface
         ui.createUI(cHandler);

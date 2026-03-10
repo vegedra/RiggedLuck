@@ -51,7 +51,7 @@ public class VisibilityManager {
 
         // Começa o timer
         if (gameManager != null && gameManager.timer == null) {
-            gameManager.startPassiveIncome();
+            gameManager.startTimer();
         }
 
         // Carregar tooltips

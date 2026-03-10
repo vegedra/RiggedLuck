@@ -27,10 +27,12 @@ public class GameManager {
     private Card[] activeCards = new Card[4];
     private CardGenerator generator = new CardGenerator();
     public Timer timer, messageTimer;
+    private VisibilityManager vm;
     private ActionListener cHandler;
     public int secondsElapsed = 0;                     // Tempo de jogo
     public boolean firstTimePlaying = false;
-    public int currentGameMode;   // stores the chosen mode (0,1,2)
+    public int currentGameMode;                         // Modo de jogo atual (0,1,2)
+    private int clicksThisSecond = 0;
 
     // Estados de jogo
     public enum GameState {
@@ -42,11 +44,15 @@ public class GameManager {
     public GameState state = GameState.TITLE;
 
     // Construtor
-    public GameManager(Player player, UI ui, ActionListener cHandler) {
+    public GameManager(Player player, UI ui, ActionListener cHandler, VisibilityManager vm) {
         this.player = player;
         this.ui = ui;
         this.cHandler = cHandler;
+        this.vm = vm;
     }
+
+    // Injeção do vm após contrusção
+    public void setVisibilityManager(VisibilityManager vm) { this.vm = vm; }
 
     // Atualizar labels
     public void updateCounter() {
@@ -60,23 +66,36 @@ public class GameManager {
     }
 
     // Timer (para geração passiva e tempo de jogo)
-    public void startPassiveIncome() {
-        timer = new Timer(1000, e -> {
-            // Incrementa o tempo de jogo (segundos)
-            secondsElapsed++;
+    public void startTimer() {
+            timer = new Timer(1000, e -> {
 
-            int totalCPS = getTotalCPS();
-            player.addCoins(totalCPS);
+                // Se game over
+                if (state == GameState.GAME_OVER) {
+                    timer.stop();
+                    return;
+                }
 
-            // Atualiza a UI
-            updateCounter();
-            updateCPSLabel();
+                // Incrementa o tempo de jogo (segundos)
+                secondsElapsed++;
 
-            // TODO: Spawn dos cobradores
-            //checkCollectorSpawn();
-        });
+                // Pega as moedas geradas de forma passiva
+                int totalCPS = getTotalCPS();
+                player.addCoins(totalCPS);
 
-        timer.start();
+                // Atualiza a sorte
+                updateLuck();
+
+                // reseta contador de cliques
+                clicksThisSecond = 0;
+
+                // Atualiza UI
+                updateCounter();
+                updateCPSLabel();
+
+                // TODO: Spawn dos cobradores
+                //checkCollectorSpawn();
+            });
+            timer.start();
     }
     // Pega quantas moedas são geradas por segundo
     public int getTotalCPS() {
@@ -106,12 +125,43 @@ public class GameManager {
     // Verifica condições de game over
     private void checkGameOver() {
         if (player.getLuck() <= 0 || player.getCoins() < 0) {
-            // Game over
             state = GameState.GAME_OVER;
-
-            // Notifica o VisibilityManager (precisa ser acessível)
-            // Isso será tratado pelo Main através de um timer ou callback (TODO!)
+            vm.showGameOverScreen();
+            System.out.println("Game Over!");
         }
+    }
+
+    // Controlador da sorte
+    private void updateLuck() {
+        float minutosPassados = secondsElapsed / 60f;
+
+        // Tendência negativa crescente
+        float tendenciaBase = 0.5f + (minutosPassados * 0.15f);
+
+        // Oscilação crescente
+        float oscilacaoBase = 2f + (minutosPassados * 0.4f);
+
+        // Limites para evitar RNG absurdo
+        oscilacaoBase = Math.min(oscilacaoBase, 12f);
+        tendenciaBase = Math.min(tendenciaBase, 3.5f);
+
+        // Variação aleatória
+        float variacao = (float)(Math.random() * (oscilacaoBase * 2)) - oscilacaoBase;
+
+        // Aplica tendência negativa
+        variacao -= tendenciaBase;
+
+        // Bônus por clique
+        float bonusClique = 0.2f;
+
+        float resultado = variacao + (bonusClique * clicksThisSecond);
+
+        player.changeLuck((int)resultado);
+
+        updateLuckLabel();
+
+        // Verifica game over
+        checkGameOver();
     }
 
     // Roletar uma carta nova
@@ -220,13 +270,12 @@ public class GameManager {
         player.addCoins(player.getClickValue());
         Sound.CLICK.play();
 
-        // Oscilação da sorte após cada clique
-        int value = (int)(Math.random() * 5) - 2; // -2 até +2
-        player.changeLuck(value);
+        // conta cliques do segundo
+        clicksThisSecond++;
 
-        // Atualiza
+        // Atualiza UI
         updateCounter();
-        ui.luckLabel.setText("Sorte: " + player.getLuck() + "%");
+        updateLuckLabel();
     }
 
     // Descartar carta
@@ -266,6 +315,12 @@ public class GameManager {
 
     // Reiniciar o jogo
     public void resetGame() {
+        // Parar e descartar timer antigo
+        if (timer != null) {
+            timer.stop();
+            timer = null;
+        }
+
         // Reset player
         player.reset();
 
@@ -275,7 +330,7 @@ public class GameManager {
             updateCardUI(i);
         }
 
-        // Reinicia o timer
+        // Reinicia o tempo
         secondsElapsed = 0;
         firstTimePlaying = false;
 
