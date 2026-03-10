@@ -241,6 +241,7 @@ public class GameManager {
             discard.setFocusPainted(false);
             discard.setMargin(new Insets(2,6,2,6));
             discard.setActionCommand("discard_" + index);
+            discard.setToolTipText("Descartar carta pagando uma taxa.");
             discard.addActionListener(cHandler);
 
             ui.cardSlots[index].add(name, BorderLayout.CENTER);
