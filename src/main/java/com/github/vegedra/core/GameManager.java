@@ -24,7 +24,8 @@ public class GameManager {
     // Variaveis e objetos
     public Player player;
     private UI ui;
-    private Card[] activeCards = new Card[4];
+    private static final int MAX_CARDS = 4;     // TODO: MUDAR PARA 9 JUNTO COM A UI
+    private Card[] activeCards = new Card[MAX_CARDS];
     private CardGenerator generator = new CardGenerator();
     public Timer timer, messageTimer;
     private VisibilityManager vm;
@@ -34,6 +35,7 @@ public class GameManager {
     public int currentGameMode;                         // Modo de jogo atual (0,1,2)
     private int clicksThisSecond = 0;
     public int rollCost;
+    public int rollsMade = 0;
 
     // Estados de jogo
     public enum GameState {
@@ -50,6 +52,7 @@ public class GameManager {
         this.ui = ui;
         this.cHandler = cHandler;
         this.vm = vm;
+        this.rollCost = 20;     // Valor inicial do roll
     }
 
     // Injeção do vm após contrusção
@@ -66,38 +69,48 @@ public class GameManager {
         ui.luckLabel.setText("Sorte: " + player.getLuck() + "%");
     }
 
+    // Atualiza o custo do roll e o texto do botão
+    public void updateRollCost() {
+        if (ui != null && ui.rollButton != null) {
+            // Formula para o custo do roll
+            rollCost = (int)(20 * Math.pow(1.6, rollsMade));
+            // teste: rollCost = (int)(20 + (rollsBought * 12) + Math.pow(1.15, rollsBought) * 10);
+            // teste: rollCost = 20 + (rollsBought * 15);
+            ui.rollButton.setText("Sortear (" + rollCost + " moedas)");
+        }
+    }
+
+
     // Timer (para geração passiva e tempo de jogo)
     public void startTimer() {
-            timer = new Timer(1000, e -> {
+        timer = new Timer(1000, e -> {
+            // Se game over
+            if (state == GameState.GAME_OVER) {
+                timer.stop();
+                return;
+            }
 
-                // Se game over
-                if (state == GameState.GAME_OVER) {
-                    timer.stop();
-                    return;
-                }
+            // Incrementa o tempo de jogo (segundos)
+            secondsElapsed++;
 
-                // Incrementa o tempo de jogo (segundos)
-                secondsElapsed++;
+            // reseta contador de cliques
+            int clicks = clicksThisSecond;
+            clicksThisSecond = 0;
 
-                // reseta contador de cliques
-                int clicks = clicksThisSecond;
-                clicksThisSecond = 0;
+            // Pega as moedas geradas de forma passiva
+            int totalCPS = getTotalCPS();
+            player.addCoins(totalCPS);
 
-                // Pega as moedas geradas de forma passiva
-                int totalCPS = getTotalCPS();
-                player.addCoins(totalCPS);
+            // Atualiza a sorte
+            updateLuck(clicks);
+            updateRollCost();
+            updateCounter();
+            updateCPSLabel();
 
-                // Atualiza a sorte
-                updateLuck(clicks);
-
-                // Atualiza UI
-                updateCounter();
-                updateCPSLabel();
-
-                // TODO: Spawn dos cobradores
-                //checkCollectorSpawn();
-            });
-            timer.start();
+            // TODO: Spawn dos cobradores
+            //checkCollectorSpawn();
+        });
+        timer.start();
     }
     // Pega quantas moedas são geradas por segundo
     public int getTotalCPS() {
@@ -115,6 +128,17 @@ public class GameManager {
         int minutes = (totalSeconds % 3600) / 60;
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+    }
+    // Parar apenas os timers (sem fechar os sons)
+    public void stopGameTimers() {
+        if (timer != null) {
+            timer.stop();
+            timer = null;
+        }
+        if (messageTimer != null) {
+            messageTimer.stop();
+            messageTimer = null;
+        }
     }
 
     // Altera o modo de jogo - TODO
@@ -170,7 +194,7 @@ public class GameManager {
     public void rollCard() {
         // Custo para roletar
         // int rollCost = 20;   // OLD
-        rollCost = 20 + (player.getClickValue() * 2) + (getTotalCPS() * 3);     // Teste
+        // System.out.println(rollCost);
 
         // Se nao tiver moedas suficientes
         if (player.getCoins() < rollCost) {
@@ -199,6 +223,8 @@ public class GameManager {
         player.addCoins(-rollCost);
         // Toca sfx
         Sound.ROLL.play();
+        // Incrementa cartas compradas
+        rollsMade++;
 
         // Cria nova carta de acordo com Sorte atual
         Card newCard = generator.generateCard(player.getLuck());
@@ -211,6 +237,7 @@ public class GameManager {
         updateCardUI(emptyIndex);
         updateCounter();
         updateCPSLabel();
+        updateRollCost();
         ui.showMessage("Nova carta adquirida!", Color.GREEN);
     }
 
@@ -307,6 +334,7 @@ public class GameManager {
                 updateCardUI(index);
                 updateCounter();
                 updateCPSLabel();
+                updateRollCost();
 
                 ui.showMessage("Carta descartada (-" + discardCost + ")", Color.green);
                 Sound.DISCARD.play();
@@ -319,11 +347,8 @@ public class GameManager {
 
     // Reiniciar o jogo
     public void resetGame() {
-        // Parar e descartar timer antigo
-        if (timer != null) {
-            timer.stop();
-            timer = null;
-        }
+        // Para os timers antigos
+        stopGameTimers();
 
         // Reset player
         player.reset();
@@ -334,14 +359,17 @@ public class GameManager {
             updateCardUI(i);
         }
 
-        // Reinicia o tempo
+        // Reinicia o tempo e variáveis de roll
         secondsElapsed = 0;
+        rollsMade = 0;
+        rollCost = 20;
         firstTimePlaying = false;
 
-        // Atualiza UI
+        // Atualiza a interface
         updateCounter();
         updateCPSLabel();
         updateLuckLabel();
+        updateRollCost();
     }
 
     // Parar timers e sons

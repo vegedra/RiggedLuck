@@ -12,7 +12,7 @@
 package com.github.vegedra.core;
 
 import com.formdev.flatlaf.FlatLightLaf;
-
+import com.github.vegedra.audio.Sound;
 import javax.swing.*;
 import java.awt.*;
 
@@ -25,6 +25,7 @@ public class UI {
     public JFrame window;
     public JLabel counterLabel, effectLabel, luckLabel, cpsLabel;
     public JPanel[] cardSlots = new JPanel[4];
+    public JButton rollButton;
 
     public JPanel titlePanel, gamePanel;
     private Font font1, font2;
@@ -65,18 +66,44 @@ public class UI {
         window.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-                int option = JOptionPane.showConfirmDialog(
-                        window,
-                        "Tem certeza que deseja sair do jogo?",
-                        "Fechar jogo",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.QUESTION_MESSAGE
-                );
-                if (option == JOptionPane.YES_OPTION) {
-                    if (gameManager != null) {
-                        gameManager.shutdown();
-                    }
+                if (gameManager == null) {
+                    // Se não houver gameManager, apenas sai
                     System.exit(0);
+                    return;
+                }
+
+                if (gameManager.state == GameManager.GameState.TITLE) {
+                    // No menu inicial
+                    int option = JOptionPane.showConfirmDialog(
+                            window,
+                            "Tem certeza que deseja sair do jogo?",
+                            "Fechar jogo",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE
+                    );
+                    if (option == JOptionPane.YES_OPTION) {
+                        gameManager.shutdown();
+                        System.exit(0);
+                    }
+                } else {
+                    // Na tela de jogo
+                    int option = JOptionPane.showConfirmDialog(
+                            window,
+                            "Deseja realmente voltar ao menu inicial?\nO progresso atual será perdido.",
+                            "Voltar ao menu",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE
+                    );
+                    if (option == JOptionPane.YES_OPTION) {
+                        // Para os timers do jogo, mas NÃO fecha os sons
+                        gameManager.stopGameTimers();
+                        // Volta para a tela de título
+                        switchTo("title");
+                        // Atualiza o estado do jogo
+                        gameManager.state = GameManager.GameState.TITLE;
+                        // Toca a música do menu
+                        Sound.BG1.playMusic();
+                    }
                 }
             }
         });
@@ -150,7 +177,7 @@ public class UI {
         gamePanel.add(luckLabel);
 
         // Roll button
-        JButton rollButton = new JButton("Sortear (" + gameManager.rollCost + " moedas)");
+        rollButton = new JButton("Sortear (" + gameManager.rollCost + " moedas)");
         rollButton.setBounds(500, 70, 200, 50);
         rollButton.setBackground(Color.yellow);
         rollButton.setFont(font2);
@@ -201,7 +228,7 @@ public class UI {
         exitButton.addActionListener(cHandler);
         titlePanel.add(exitButton);
 
-        JLabel versionLabel = new JLabel("Versão 0.0.4 - © 2026 Digital Cake Studio", SwingConstants.CENTER);
+        JLabel versionLabel = new JLabel("Versão 0.0.5 - © 2026 Digital Cake Studio", SwingConstants.CENTER);
         versionLabel.setBounds(245, 500, 300, 30);
         versionLabel.setFont(new Font("Cambria", Font.PLAIN, 16));
         versionLabel.setForeground(Color.gray);
@@ -210,6 +237,10 @@ public class UI {
         // Adiciona os panels pro cardLayout
         mainPanel.add(titlePanel, "title");
         mainPanel.add(gamePanel, "game");
+
+        if (gameManager != null) {
+            gameManager.updateRollCost();
+        }
 
         window.pack();  // Ajusta a janela pro tamanho selecionado
         window.setVisible(true);

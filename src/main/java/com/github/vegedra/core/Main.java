@@ -29,7 +29,7 @@ public class Main {
 
     // Inicio
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new Main());
+        SwingUtilities.invokeLater(() -> new SplashScreen());
     }
 
     // Construtor
