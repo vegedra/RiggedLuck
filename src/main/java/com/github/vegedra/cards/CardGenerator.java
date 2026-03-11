@@ -3,70 +3,104 @@
     Todos os direitos reservados.
     All rights reserved.
 
-    É proibida a reprodução, distribuição ou venda deste código
-    sem a permissão expressa do autor.
+    CardGenerator — sorteia uma carta do pool carregado do JSON.
 
-    *TODO: Em vez de criar cartas manualmente, consultar a lista criada a partir do Json e selecionar uma com base na raridade e na sorte.
+    Fluxo:
+      1. Determina a raridade com base em chances + bônus de Sorte
+      2. Filtra cartas daquela raridade
+      3. Sorteia uma aleatoriamente
+      4. Decide se sai normal ou invertida (chance = Sorte / 100)
+      5. Instancia e retorna o Card
 */
 
 package com.github.vegedra.cards;
 
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 public class CardGenerator {
 
-    Random random = new Random();
+    private final Random random = new Random();
 
-    // Gerar cartas para a roleta de acordo com Sorte atual
+    /**
+     * Gera uma carta aleatória baseada na Sorte atual do jogador (0–100).
+     * Sorte alta → mais chance de raridade maior e carta normal.
+     */
     public Card generateCard(int luck) {
+        List<CardData> pool = CardLoader.loadAll();
+
+        if (pool.isEmpty()) {
+            System.err.println("[CardGenerator] Pool vazio! Verifique cards.json.");
+            return fallbackCard();
+        }
+
+        // 1. Sorteia raridade
+        Card.Rarity rarity = rollRarity(luck);
+
+        // 2. Filtra pool por raridade
+        final String rarityName = rarity.name();
+        List<CardData> filtered = pool.stream()
+                .filter(cd -> rarityName.equalsIgnoreCase(cd.rarity))
+                .collect(Collectors.toList());
+
+        // Fallback: se não tiver cartas dessa raridade, usa todo o pool
+        if (filtered.isEmpty()) {
+            System.err.println("[CardGenerator] Nenhuma carta " + rarityName + " no pool. Usando pool completo.");
+            filtered = pool;
+        }
+
+        // 3. Sorteia uma carta do pool filtrado
+        CardData chosen = filtered.get(random.nextInt(filtered.size()));
+
+        // 4. Decide normal vs invertida
+        // Chance de sair normal = Sorte / 100  (sorte 70 → 70% normal)
+        float normalChance = Math.max(0.05f, Math.min(0.95f, luck / 100f));
+        boolean inverted = random.nextFloat() > normalChance;
+
+        // 5. Instancia e retorna
+        return chosen.instantiate(inverted);
+    }
+
+    // -------------------------------------------------------------------------
+    // Raridade
+    // -------------------------------------------------------------------------
+
+    /**
+     * Tabela base:
+     *   COMMON   50%  → reduz com sorte alta
+     *   UNCOMMON 30%
+     *   RARE     15%
+     *   MYTHIC    5%  → aumenta com sorte alta
+     *
+     * Bônus de Sorte: cada 10 pontos acima de 50 transfere 1% de COMMON para MYTHIC/RARE
+     */
+    private Card.Rarity rollRarity(int luck) {
+        // Bônus por sorte acima de 50
+        int bonus = Math.max(0, (luck - 50) / 10);  // 0 a 5
+
+        int common   = 50 - (bonus * 2);   // 50% → 40% no máximo
+        int uncommon = 30;
+        int rare     = 15 + bonus;          // 15% → 20%
+        int mythic   = 5  + bonus;          // 5%  → 10%
 
         int roll = random.nextInt(100);
 
-        // Sorte influencia
-        roll += luck / 5;
-
-        // Carta fraca - TODO: Criar os tipos inspirados em tarot
-        if (roll < 30) {
-            return createWeakCard();
-        }
-        else if (roll < 70) {
-            return createNormalCard();
-        }
-        else {
-            return createStrongCard();
-        }
+        if (roll < mythic)                        return Card.Rarity.MYTHIC;
+        if (roll < mythic + rare)                 return Card.Rarity.RARE;
+        if (roll < mythic + rare + uncommon)      return Card.Rarity.UNCOMMON;
+        return Card.Rarity.COMMON;
     }
 
-    // Criar cartas fracas - TODO: Adicionar mais cartas e sortear uma
-    private Card createWeakCard() {
+    // -------------------------------------------------------------------------
+    // Fallback de emergência (não depende do JSON)
+    // -------------------------------------------------------------------------
+    private Card fallbackCard() {
         return new Card(
-                "weak_click",
-                "Carta Fraca",
-                "Gera 1 moeda por clique.",
-                1,
-                0
-        );
-    }
-
-    // Criar cartas normais
-    private Card createNormalCard() {
-        return new Card(
-                "normal_generator",
-                "Moeda Viva",
-                "Gera 2 moedas passivamente.",
-                0,
-                2
-        );
-    }
-
-    // Criar carta forte
-    private Card createStrongCard() {
-        return new Card(
-                "strong_click",
-                "Bênção Dourada",
-                "Gera 5 moedas por clique.",
-                5,
-                0
+                "fallback", "Carta Perdida",
+                "O destino falhou em te entregar uma carta.",
+                Card.CardType.CLICK, Card.Rarity.COMMON, false,
+                1, 0
         );
     }
 }

@@ -3,21 +3,18 @@
     Todos os direitos reservados.
     All rights reserved.
 
-    É proibida a reprodução, distribuição ou venda deste código
-    sem a permissão expressa do autor.
-
     Splash Art
 */
 
 package com.github.vegedra.core;
 
+import com.github.vegedra.cards.CardLoader;
+
 import javax.swing.*;
 
 public class SplashScreen extends JWindow {
 
-    // Construtor
     public SplashScreen() {
-        // Carrega e cria a splash art
         ImageIcon splash = new ImageIcon(getClass().getResource("/images/splash.jpg"));
         JLabel label = new JLabel(splash);
         add(label);
@@ -25,10 +22,15 @@ public class SplashScreen extends JWindow {
         setLocationRelativeTo(null);
         setVisible(true);
 
+        // Pré-carrega as cartas em background enquanto a splash é exibida
+        new Thread(() -> {
+            CardLoader.loadAll();
+            System.out.println("[SplashScreen] Cartas pré-carregadas.");
+        }).start();
+
         // Fecha depois de 2.5 segundos
         Timer timer = new Timer(2500, e -> {
             dispose();
-            // Inicia o jogo
             new Main();
         });
         timer.setRepeats(false);
