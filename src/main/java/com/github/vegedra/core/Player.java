@@ -29,9 +29,7 @@ public class Player {
     }
 
     // Getters
-    public long getCoins() {
-        return coins;
-    }
+    public long getCoins() { return coins; }
     public int getClickValue() {
         return clickValue;
     }
@@ -39,9 +37,7 @@ public class Player {
     public int getTotalCPS() { return totalCPS; }
     
     // Setters
-    public void addCoins(int amount) {
-        coins += amount;
-    }
+    public void addCoins(int amount) { coins += amount; }
     public void addClickValue(int amount) {
         clickValue += amount;
     }

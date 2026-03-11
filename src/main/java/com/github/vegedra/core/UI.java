@@ -150,7 +150,7 @@ public class UI {
         gamePanel.add(luckLabel);
 
         // Roll button
-        JButton rollButton = new JButton("Sortear (20 moedas)");
+        JButton rollButton = new JButton("Sortear (" + gameManager.rollCost + " moedas)");
         rollButton.setBounds(500, 70, 200, 50);
         rollButton.setBackground(Color.yellow);
         rollButton.setFont(font2);

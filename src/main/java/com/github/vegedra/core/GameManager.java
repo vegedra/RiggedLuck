@@ -33,6 +33,7 @@ public class GameManager {
     public boolean firstTimePlaying = false;
     public int currentGameMode;                         // Modo de jogo atual (0,1,2)
     private int clicksThisSecond = 0;
+    public int rollCost;
 
     // Estados de jogo
     public enum GameState {
@@ -78,15 +79,16 @@ public class GameManager {
                 // Incrementa o tempo de jogo (segundos)
                 secondsElapsed++;
 
+                // reseta contador de cliques
+                int clicks = clicksThisSecond;
+                clicksThisSecond = 0;
+
                 // Pega as moedas geradas de forma passiva
                 int totalCPS = getTotalCPS();
                 player.addCoins(totalCPS);
 
                 // Atualiza a sorte
-                updateLuck();
-
-                // reseta contador de cliques
-                clicksThisSecond = 0;
+                updateLuck(clicks);
 
                 // Atualiza UI
                 updateCounter();
@@ -132,31 +134,31 @@ public class GameManager {
     }
 
     // Controlador da sorte
-    private void updateLuck() {
-        float minutosPassados = secondsElapsed / 60f;
+    private void updateLuck(int clicks) {
+        float minutesPassed = secondsElapsed / 60f;
 
         // Tendência negativa crescente
-        float tendenciaBase = 0.5f + (minutosPassados * 0.15f);
+        float baseTendecy = 0.5f + (minutesPassed * 0.15f);
 
         // Oscilação crescente
-        float oscilacaoBase = 2f + (minutosPassados * 0.4f);
+        float baseOsc = 2f + (minutesPassed * 0.4f);
 
         // Limites para evitar RNG absurdo
-        oscilacaoBase = Math.min(oscilacaoBase, 12f);
-        tendenciaBase = Math.min(tendenciaBase, 3.5f);
+        baseOsc = Math.min(baseOsc, 12f);
+        baseTendecy = Math.min(baseTendecy, 3.5f);
 
         // Variação aleatória
-        float variacao = (float)(Math.random() * (oscilacaoBase * 2)) - oscilacaoBase;
+        float variation = (float)(Math.random() * (baseOsc * 2)) - baseOsc;
 
         // Aplica tendência negativa
-        variacao -= tendenciaBase;
+        variation -= baseTendecy;
 
         // Bônus por clique
-        float bonusClique = 0.2f;
+        float bonusClick = 0.2f;
 
-        float resultado = variacao + (bonusClique * clicksThisSecond);
+        float result = variation + (bonusClick * clicks);
 
-        player.changeLuck((int)resultado);
+        player.changeLuck(Math.round(result));
 
         updateLuckLabel();
 
@@ -167,10 +169,11 @@ public class GameManager {
     // Roletar uma carta nova
     public void rollCard() {
         // Custo para roletar
-        int cost = 20;
+        // int rollCost = 20;   // OLD
+        rollCost = 20 + (player.getClickValue() * 2) + (getTotalCPS() * 3);     // Teste
 
         // Se nao tiver moedas suficientes
-        if (player.getCoins() < cost) {
+        if (player.getCoins() < rollCost) {
             ui.showMessage("Moedas insuficientes!", Color.RED);
             return;
         }
@@ -193,7 +196,7 @@ public class GameManager {
         //  TODO: chance baixa de spawnar um cobrador instantaneamente
 
         // Subtrai o custo da roleta
-        player.addCoins(-cost);
+        player.addCoins(-rollCost);
         // Toca sfx
         Sound.ROLL.play();
 
