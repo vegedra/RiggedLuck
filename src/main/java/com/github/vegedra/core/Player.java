@@ -20,6 +20,7 @@ public class Player {
     private int clickValue = 1;    // Quantas moedas gera por clique
     private double luck = 50;        // Sorte
     private int totalCPS = 0;
+    private int rollCost;
 
     // Resetar
     public void reset() {
@@ -35,9 +36,11 @@ public class Player {
     }
     public int getLuck() { return (int)luck; }
     public int getTotalCPS() { return totalCPS; }
+    public int getRollCost() { return rollCost; }
     
     // Setters
     public void addCoins(int amount) { coins += amount; }
+    public void changeRollCost(int amount) { rollCost += amount; }
     public void addClickValue(int amount) {
         clickValue += amount;
     }
