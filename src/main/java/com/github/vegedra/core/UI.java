@@ -24,7 +24,8 @@ public class UI {
     private Timer messageTimer;
     public JFrame window;
     public JLabel counterLabel, effectLabel, luckLabel, cpsLabel;
-    public JPanel[] cardSlots = new JPanel[4];
+    private static final int MAX_CARDS = 9;
+    public JPanel[] cardSlots = new JPanel[MAX_CARDS];
     public JButton rollButton;
 
     public JPanel titlePanel, gamePanel;
@@ -114,14 +115,14 @@ public class UI {
         mainPanel.setPreferredSize(new Dimension(800, 600));
         window.setContentPane(mainPanel);
 
-        // Game Panel
+        // Game Panel - tela de jogo
         gamePanel = new JPanel();
         gamePanel.setLayout(null);  // absolute positioning
         gamePanel.setBackground(Color.white);
 
-        // Clicker
+        // Clicker (circulo magico)
         JPanel clickerPanel = new JPanel();
-        clickerPanel.setBounds(80, 250, 250, 255);
+        clickerPanel.setBounds(80, 200, 250, 255);
         clickerPanel.setBackground(Color.white);
         clickerPanel.setBorder(null);
         gamePanel.add(clickerPanel);
@@ -138,7 +139,7 @@ public class UI {
 
         // Counter panel
         JPanel counterPanel = new JPanel();
-        counterPanel.setBounds(80, 120, 200, 100);
+        counterPanel.setBounds(80, 80, 200, 100);
         counterPanel.setBackground(Color.white);
         counterPanel.setLayout(new GridLayout(2, 1));
         gamePanel.add(counterPanel);
@@ -177,7 +178,7 @@ public class UI {
         gamePanel.add(luckLabel);
 
         // Roll button
-        rollButton = new JButton("Sortear (" + gameManager.rollCost + " moedas)");
+        rollButton = new JButton("Sortear (20 moedas)");    // É atualizado no gameManager
         rollButton.setBounds(500, 70, 200, 50);
         rollButton.setBackground(Color.yellow);
         rollButton.setFont(font2);
@@ -186,17 +187,21 @@ public class UI {
         rollButton.addActionListener(cHandler);
         gamePanel.add(rollButton);
 
-        // Slots das cartas
+        // Slots das cartas - estilo hotbar horizontal
         JPanel cardPanel = new JPanel();
-        cardPanel.setBounds(500, 250, 250, 250);
-        cardPanel.setLayout(new GridLayout(4, 1));
+        cardPanel.setBounds(50, 480, 700, 100);                 // x=50, y=450, largura 700, altura 100
+        cardPanel.setLayout(new GridLayout(1, 9, 5, 0));    // 1 linha, 9 colunas, espaçamento horizontal 5px
+        cardPanel.setBackground(Color.white);
+        cardPanel.setBorder(BorderFactory.createTitledBorder("Cartas Ativas"));
 
-        // Cria os slots para as cartas
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 9; i++) {
             cardSlots[i] = new JPanel();
+            cardSlots[i].setBackground(Color.white);
             cardSlots[i].setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            cardSlots[i].setLayout(new BorderLayout());
             JLabel empty = new JLabel("Vazio", SwingConstants.CENTER);
-            cardSlots[i].add(empty);
+            empty.setFont(new Font("Cambria", Font.PLAIN, 10));
+            cardSlots[i].add(empty, BorderLayout.CENTER);
             cardPanel.add(cardSlots[i]);
         }
         gamePanel.add(cardPanel);
@@ -228,8 +233,8 @@ public class UI {
         exitButton.addActionListener(cHandler);
         titlePanel.add(exitButton);
 
-        JLabel versionLabel = new JLabel("Versão 0.0.5 - © 2026 Digital Cake Studio", SwingConstants.CENTER);
-        versionLabel.setBounds(245, 500, 300, 30);
+        JLabel versionLabel = new JLabel("Versão 0.0.8 - © 2026 Digital Cake Studio", SwingConstants.CENTER);
+        versionLabel.setBounds(245, 560, 300, 30);
         versionLabel.setFont(new Font("Cambria", Font.PLAIN, 16));
         versionLabel.setForeground(Color.gray);
         titlePanel.add(versionLabel);
@@ -238,6 +243,7 @@ public class UI {
         mainPanel.add(titlePanel, "title");
         mainPanel.add(gamePanel, "game");
 
+        // Se o GameManager já existir, atualiza o custo da roleta
         if (gameManager != null) {
             gameManager.updateRollCost();
         }
