@@ -33,8 +33,8 @@ public enum Sound {
     BG1("/audio/menu.wav", true),
     BG2("/audio/game_music.wav", true);
 
+    // Controle do volume
     public enum Volume { MUTE, LOW, MEDIUM, HIGH }
-
     public static Volume soundVolume = Volume.HIGH;
     public static Volume musicVolume = Volume.MEDIUM;
 

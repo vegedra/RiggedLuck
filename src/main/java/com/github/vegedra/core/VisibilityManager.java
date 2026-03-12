@@ -63,6 +63,14 @@ public class VisibilityManager {
         }
     }
 
+    // Menu de pausa
+    public void showPauseScreen() {
+        ui.switchTo("pause");
+    }
+    public void showGamePanel() {
+        ui.switchTo("game");
+    }
+
     // Mostra a tela de game over
     public void showGameOverScreen() {
         // Para o timer

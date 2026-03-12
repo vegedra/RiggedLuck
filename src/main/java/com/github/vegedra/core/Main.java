@@ -102,6 +102,20 @@ public class Main {
                     gameManager.rollCard();
                     break;
 
+                // Pausou o jogo
+                case "pause":
+                    gameManager.pauseGame();
+                    break;
+                case "resume":
+                    gameManager.resumeGame();
+                    break;
+                case "exitToMenu":
+                    gameManager.stopGameTimers();
+                    ui.switchTo("title");
+                    gameManager.state = GameManager.GameState.TITLE;
+                    Sound.BG1.playMusic();
+                    break;
+
                 default:
                     // Descartar cartas
                     if (action.startsWith("discard_")) {

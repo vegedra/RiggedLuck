@@ -51,19 +51,41 @@ public class CardGenerator {
 
     // Raridade
     private Card.Rarity rollRarity(int luck) {
-        // Bônus por sorte acima de 80
-        int bonus = Math.max(0, (luck - 80) / 10);  // 0 a 5
+        // Pesos base (quanto maior o peso, maior a chance)
+        int commonWeight   = 60;
+        int uncommonWeight = 30;
+        int rareWeight     = 9;
+        int mythicWeight   = 1;  // mítico só aparece com sorte >= 70
 
-        int common   = 50 - (bonus * 2);
-        int uncommon = 30;
-        int rare     = 15 + bonus;
-        int mythic   = 5  + bonus;
+        // Bônus por sorte a partir de 60
+        final int minForBonus = 60;
+        if (luck > minForBonus) {
+            // A cada 10 pontos acima de 50, ganha 1 de peso para raro
+            // e 0.5 para mítico (arredondado para baixo, mínimo 1 quando aplicável)
+            int bonus = (luck - minForBonus) / 10;  // 0 a 5
 
-        int roll = random.nextInt(100);
+            rareWeight += bonus;
+            // Mítico só ganha peso se luck > 70 (bonus >=2)
+            if (bonus >= 2) {
+                mythicWeight += Math.max(1, bonus / 2);  // para bonus=2 -> +1, bonus=4 -> +2, etc.
+            }
 
-        if (roll < mythic)                        return Card.Rarity.MYTHIC;
-        if (roll < mythic + rare)                 return Card.Rarity.RARE;
-        if (roll < mythic + rare + uncommon)      return Card.Rarity.UNCOMMON;
+            // Reduz o peso de comum, mas mantém um mínimo para não sumirem
+            commonWeight -= (bonus + (bonus / 2));
+            if (commonWeight < 30) commonWeight = 30;
+        }
+
+        // Garante que mítico não ultrapasse um limite razoável (máximo 5)
+        if (mythicWeight > 5) mythicWeight = 5;
+
+        // Sorteio baseado nos pesos acumulados
+        int totalWeight = commonWeight + uncommonWeight + rareWeight + mythicWeight;
+        int roll = random.nextInt(totalWeight);
+
+        if (roll < mythicWeight)               return Card.Rarity.MYTHIC;
+        if (roll < mythicWeight + rareWeight)  return Card.Rarity.RARE;
+        if (roll < mythicWeight + rareWeight + uncommonWeight)
+            return Card.Rarity.UNCOMMON;
         return Card.Rarity.COMMON;
     }
 

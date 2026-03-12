@@ -14,6 +14,7 @@ import javax.swing.*;
 
 public class SplashScreen extends JWindow {
 
+    // Tela de logo da Digital Cake Studio - carrega o jogo enquanto isso
     public SplashScreen() {
         ImageIcon splash = new ImageIcon(getClass().getResource("/images/splash.jpg"));
         JLabel label = new JLabel(splash);

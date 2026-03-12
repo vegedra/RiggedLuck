@@ -39,7 +39,7 @@ public class GameManager {
     public int rollsMade = 0;
 
     // Estados de jogo
-    public enum GameState { TITLE, GAME, GAME_OVER }
+    public enum GameState { TITLE, GAME, PAUSED, GAME_OVER }
     public GameState state = GameState.TITLE;
 
     // Construtor
@@ -209,7 +209,7 @@ public class GameManager {
         Sound.DISCARD.play();
     }
 
-    // Custo de descarte: baseado em clickValue, CPS e efeito de sorte. */
+    // Custo de descarte: baseado em clickValue, CPS e efeito de sorte
     private int calcDiscardCost(Card c) {
         // Cartas mais poderosas custam mais pra descartar
         int base = (Math.abs(c.clickValue) + Math.abs(c.coinsPerSecond)) * 2;
@@ -312,6 +312,22 @@ public class GameManager {
     public void stopGameTimers() {
         if (timer != null)        { timer.stop();        timer = null; }
         if (messageTimer != null) { messageTimer.stop(); messageTimer = null; }
+    }
+
+    // Pausar e continuar jogo
+    public void pauseGame() {
+        if (state == GameState.GAME) {
+            state = GameState.PAUSED;
+            stopGameTimers();           // Para o timer principal e o de mensagens
+            vm.showPauseScreen();       // Mostra a tela de pausa
+        }
+    }
+    public void resumeGame() {
+        if (state == GameState.PAUSED) {
+            state = GameState.GAME;
+            startTimer();               // Reinicia o timer principal (cria um novo)
+            vm.showGamePanel();         // Volta para o painel do jogo (sem reintrodução)
+        }
     }
 
     // Game Over

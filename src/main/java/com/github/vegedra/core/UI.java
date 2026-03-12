@@ -24,12 +24,12 @@ public class UI {
     private Timer messageTimer;
     public JFrame window;
     public JLabel counterLabel, effectLabel, luckLabel, cpsLabel;
+    public JButton rollButton;
     private static final int MAX_CARDS = 9;
     public JPanel[] cardSlots = new JPanel[MAX_CARDS];
-    public JButton rollButton;
 
-    public JPanel titlePanel, gamePanel;
-    private Font font1, font2;
+    public JPanel titlePanel, gamePanel, pausePanel;
+    private Font font1, font2, font3, buttonFont;
     private CardLayout cardLayout;          // reference to the layout manager
     private JPanel mainPanel;                // container that uses CardLayout
 
@@ -42,6 +42,8 @@ public class UI {
     private void createFont() {
         font1 = new Font("Cambria", Font.PLAIN, 32);
         font2 = new Font("Cambria", Font.PLAIN, 15);
+        font3 = new Font("Cambria", Font.BOLD, 40);
+        buttonFont = new Font("Cambria", Font.BOLD, 18);
     }
 
     // Cria a interface do jogo
@@ -68,43 +70,46 @@ public class UI {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
                 if (gameManager == null) {
-                    // Se não houver gameManager, apenas sai
                     System.exit(0);
                     return;
                 }
 
-                if (gameManager.state == GameManager.GameState.TITLE) {
-                    // No menu inicial
-                    int option = JOptionPane.showConfirmDialog(
-                            window,
-                            "Tem certeza que deseja sair do jogo?",
-                            "Fechar jogo",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.QUESTION_MESSAGE
-                    );
-                    if (option == JOptionPane.YES_OPTION) {
-                        gameManager.shutdown();
-                        System.exit(0);
-                    }
-                } else {
-                    // Na tela de jogo
-                    int option = JOptionPane.showConfirmDialog(
-                            window,
-                            "Deseja realmente voltar ao menu inicial?\nO progresso atual será perdido.",
-                            "Voltar ao menu",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.QUESTION_MESSAGE
-                    );
-                    if (option == JOptionPane.YES_OPTION) {
-                        // Para os timers do jogo, mas NÃO fecha os sons
-                        gameManager.stopGameTimers();
-                        // Volta para a tela de título
-                        switchTo("title");
-                        // Atualiza o estado do jogo
-                        gameManager.state = GameManager.GameState.TITLE;
-                        // Toca a música do menu
-                        Sound.BG1.playMusic();
-                    }
+                switch (gameManager.state) {
+                    case TITLE:
+                        int optionTitle = JOptionPane.showConfirmDialog(
+                                window,
+                                "Tem certeza que deseja sair do jogo?",
+                                "Fechar jogo",
+                                JOptionPane.YES_NO_OPTION,
+                                JOptionPane.QUESTION_MESSAGE
+                        );
+                        if (optionTitle == JOptionPane.YES_OPTION) {
+                            gameManager.shutdown();
+                            System.exit(0);
+                        }
+                        break;
+
+                    case GAME:
+                    case PAUSED:
+                    case GAME_OVER:
+                        int optionGame = JOptionPane.showConfirmDialog(
+                                window,
+                                "Deseja realmente voltar ao menu inicial?\nO progresso atual será perdido.",
+                                "Voltar ao menu",
+                                JOptionPane.YES_NO_OPTION,
+                                JOptionPane.QUESTION_MESSAGE
+                        );
+                        if (optionGame == JOptionPane.YES_OPTION) {
+                            gameManager.stopGameTimers();
+                            switchTo("title");
+                            gameManager.state = GameManager.GameState.TITLE;
+                            Sound.BG1.playMusic();
+                        }
+                        break;
+
+                    default:
+                        // Qualquer outro estado não previsto (segurança)
+                        break;
                 }
             }
         });
@@ -187,6 +192,23 @@ public class UI {
         rollButton.addActionListener(cHandler);
         gamePanel.add(rollButton);
 
+        // Botão de pausa
+        JButton pauseButton = new JButton();
+        pauseButton.setBounds(740, 10, 50, 50);
+        pauseButton.setFocusPainted(false);
+        pauseButton.setBorder(null);
+        pauseButton.setActionCommand("pause");
+        pauseButton.addActionListener(cHandler);
+        // Imagem - Tenta carregar a imagem de fundo
+        try {
+            ImageIcon pauseIcon = new ImageIcon(getClass().getResource("/images/pause.png"));
+            pauseButton.setIcon(pauseIcon);
+        } catch (Exception e) {
+            // Fallback: fundo azul se a imagem não carregar
+            pauseButton.setBackground(Color.red);
+        }
+        gamePanel.add(pauseButton);
+
         // Slots das cartas - estilo hotbar horizontal
         JPanel cardPanel = new JPanel();
         cardPanel.setBounds(50, 480, 700, 100);                 // x=50, y=450, largura 700, altura 100
@@ -213,13 +235,13 @@ public class UI {
 
         JLabel titleLabel = new JLabel("Rigged Luck", SwingConstants.CENTER);
         titleLabel.setBounds(250, 150, 300, 50);
-        titleLabel.setFont(new Font("Cambria", Font.BOLD, 40));
+        titleLabel.setFont(font3);
         titleLabel.setForeground(Color.black);
         titlePanel.add(titleLabel);
 
         JButton startButton = new JButton("Iniciar Jogo");
         startButton.setBounds(300, 300, 200, 50);
-        startButton.setFont(new Font("Cambria", Font.BOLD, 18));
+        startButton.setFont(buttonFont);
         startButton.setFocusPainted(false);
         startButton.setActionCommand("start");
         startButton.addActionListener(cHandler);
@@ -227,17 +249,46 @@ public class UI {
 
         JButton exitButton = new JButton("Sair");
         exitButton.setBounds(300, 370, 200, 50);
-        exitButton.setFont(new Font("Cambria", Font.BOLD, 18));
+        exitButton.setFont(buttonFont);
         exitButton.setFocusPainted(false);
         exitButton.setActionCommand("exit");
         exitButton.addActionListener(cHandler);
         titlePanel.add(exitButton);
 
-        JLabel versionLabel = new JLabel("Versão 0.0.8 - © 2026 Digital Cake Studio", SwingConstants.CENTER);
+        JLabel versionLabel = new JLabel("Versão 0.0.9 - © 2026 Digital Cake Studio", SwingConstants.CENTER);
         versionLabel.setBounds(245, 560, 300, 30);
         versionLabel.setFont(new Font("Cambria", Font.PLAIN, 16));
         versionLabel.setForeground(Color.gray);
         titlePanel.add(versionLabel);
+
+        // Menu de pausa
+        pausePanel = new JPanel();
+        pausePanel.setLayout(null);
+        pausePanel.setBackground(Color.white);
+
+        JLabel pausedLabel = new JLabel("Jogo Pausado!", SwingConstants.CENTER);
+        pausedLabel.setFont(font3);
+        pausedLabel.setForeground(Color.black);
+        pausedLabel.setBounds(200, 200, 400, 100);
+        pausePanel.add(pausedLabel);
+
+        JButton resumeButton = new JButton("Continuar");
+        resumeButton.setBounds(300, 350, 200, 50);
+        resumeButton.setFont(buttonFont);
+        resumeButton.setFocusPainted(false);
+        resumeButton.setActionCommand("resume");
+        resumeButton.addActionListener(cHandler);
+        pausePanel.add(resumeButton);
+
+        JButton exitToMenuButton = new JButton("Sair");
+        exitToMenuButton.setBounds(300, 415, 200, 50);
+        exitToMenuButton.setFont(buttonFont);
+        exitToMenuButton.setFocusPainted(false);
+        exitToMenuButton.setActionCommand("exitToMenu");
+        exitToMenuButton.addActionListener(cHandler);
+        pausePanel.add(exitToMenuButton);
+
+        mainPanel.add(pausePanel, "pause");
 
         // Adiciona os panels pro cardLayout
         mainPanel.add(titlePanel, "title");
