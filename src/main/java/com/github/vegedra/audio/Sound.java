@@ -34,7 +34,15 @@ public enum Sound {
     BG2("/audio/game_music.wav", true);
 
     // Controle do volume
-    public enum Volume { MUTE, LOW, MEDIUM, HIGH }
+    public enum Volume {
+        MUTE(Float.NEGATIVE_INFINITY),
+        LOW(-25f),
+        MEDIUM(-15f),
+        HIGH(-5f);
+
+        public final float dB;
+        Volume(float dB) { this.dB = dB; }
+    }
     public static Volume soundVolume = Volume.HIGH;
     public static Volume musicVolume = Volume.MEDIUM;
 
@@ -110,24 +118,7 @@ public enum Sound {
         FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
 
         // Controla o volume
-        float dB;
-        switch (volume) {
-            case LOW:
-                dB = -25f;
-                break;
-            case MEDIUM:
-                dB = -15f;
-                break;
-            case HIGH:
-                dB = -5f;
-                break;
-            case MUTE:
-                dB = gain.getMinimum();
-                break;
-            default:
-                throw new IllegalArgumentException("Volume inválido: " + volume);
-        }
-
+        float dB = volume == Volume.MUTE ? gain.getMinimum() : volume.dB;
         gain.setValue(dB);
     }
 
