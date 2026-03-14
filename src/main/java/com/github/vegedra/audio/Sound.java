@@ -54,7 +54,6 @@ public enum Sound {
     Sound(String path, boolean isMusic) {
         this.isMusic = isMusic;
 
-        // Carrega o audio
         try {
             URL url = Sound.class.getResource(path);
             if (url == null) {
@@ -63,8 +62,22 @@ public enum Sound {
             }
 
             AudioInputStream ais = AudioSystem.getAudioInputStream(url);
+
+            // Converte para PCM (necessário para MP3 via MP3SPI)
+            AudioFormat baseFormat = ais.getFormat();
+            AudioFormat pcmFormat = new AudioFormat(
+                    AudioFormat.Encoding.PCM_SIGNED,
+                    baseFormat.getSampleRate(),
+                    16,
+                    baseFormat.getChannels(),
+                    baseFormat.getChannels() * 2,
+                    baseFormat.getSampleRate(),
+                    false
+            );
+            AudioInputStream pcmAis = AudioSystem.getAudioInputStream(pcmFormat, ais);
+
             clip = AudioSystem.getClip();
-            clip.open(ais);
+            clip.open(pcmAis);
 
         } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
             System.err.println("Erro ao carregar som: " + path);
