@@ -26,9 +26,9 @@ public class Player {
     }
 
     // Getters
-    public long getCoins()      { return coins; }
+    public long getCoins() { return coins; }
     public int  getClickValue() { return clickValue; }
-    public int  getLuck()       { return (int) luck; }
+    public int  getLuck() { return (int) luck; }
 
     // Setters
     public void changeCoins(int amount)  { coins += amount; }

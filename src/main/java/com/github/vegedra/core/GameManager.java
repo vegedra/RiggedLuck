@@ -57,19 +57,16 @@ public class GameManager {
     public void updateCounter()   { ui.counterLabel.setText(player.getCoins() + " moedas"); }
     public void updateCPSLabel()  { ui.cpsLabel.setText("Moedas por segundo: " + getTotalCPS()); }
     public void updateLuckLabel() {
-        ui.luckLabel.setText("Sorte: " + player.getLuck() + "%"); 
+        ui.luckLabel.setText("Sorte: " + player.getLuck() + "%");
 
         // Dependendo do nivel de sorte atual, a cor muda
-        switch (player.getLuck()) {
-            case (player.getLuck() <= 25):
-                ui.luckLabel.setForeground(Color.red);
-                break;
-            case (player.getLuck() >= 75):
-                ui.luckLabel.setForeground(Color.green);
-                break;
-            default:
-                ui.luckLabel.setForeground(Color.black);
-                break;
+        int luck = player.getLuck();
+        if (luck <= 25) {
+            ui.luckLabel.setForeground(Color.red);
+        } else if (luck >= 75) {
+            ui.luckLabel.setForeground(Color.green);
+        } else {
+            ui.luckLabel.setForeground(Color.black);
         }
     }
     // Atualização do custo do sortear (UI e logica)

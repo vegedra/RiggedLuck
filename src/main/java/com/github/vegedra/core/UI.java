@@ -127,7 +127,7 @@ public class UI {
 
         // Clicker (circulo magico)
         JPanel clickerPanel = new JPanel();
-        clickerPanel.setBounds(80, 200, 250, 255);
+        clickerPanel.setBounds(55, 190, 250, 255);
         clickerPanel.setBackground(Color.white);
         clickerPanel.setBorder(null);
         gamePanel.add(clickerPanel);
@@ -144,7 +144,7 @@ public class UI {
 
         // Counter panel
         JPanel counterPanel = new JPanel();
-        counterPanel.setBounds(80, 80, 200, 100);
+        counterPanel.setBounds(50, 40, 200, 100);
         counterPanel.setBackground(Color.white);
         counterPanel.setLayout(new GridLayout(2, 1));
         gamePanel.add(counterPanel);
@@ -179,7 +179,7 @@ public class UI {
         luckLabel.setBounds(500, 30, 100, 50);
         luckLabel.setForeground(Color.black);
         luckLabel.setFont(font2);
-        luckLabel.setToolTipText("Quanto maior a sorte, melhores os resultados da roleta!\nNão deixe ela chegar em 0!");
+        luckLabel.setToolTipText("Quanto maior a sorte, melhores os resultados de 'Sortear'!\nNão deixe chegar em 0%!");
         gamePanel.add(luckLabel);
 
         // Roll button
