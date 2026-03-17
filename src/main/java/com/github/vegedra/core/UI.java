@@ -38,7 +38,7 @@ public class UI {
         this.player = player;
     }
 
-    // Cria e carrega fontes
+    // Cria e carrega fontes - TODO: Muda algumas fontes para uma melhor estética
     private void createFont() {
         font1 = new Font("Cambria", Font.PLAIN, 32);
         font2 = new Font("Cambria", Font.PLAIN, 15);
@@ -205,7 +205,7 @@ public class UI {
             pauseButton.setIcon(pauseIcon);
         } catch (Exception e) {
             // Fallback: fundo azul se a imagem não carregar
-            pauseButton.setBackground(Color.red);
+            pauseButton.setBackground(Color.gray);
         }
         gamePanel.add(pauseButton);
 
@@ -255,7 +255,7 @@ public class UI {
         exitButton.addActionListener(cHandler);
         titlePanel.add(exitButton);
 
-        JLabel versionLabel = new JLabel("Versão 0.0.9 - © 2026 Digital Cake Studio", SwingConstants.CENTER);
+        JLabel versionLabel = new JLabel("Versão 0.0.9 © 2026 Digital Cake Studio", SwingConstants.CENTER);
         versionLabel.setBounds(245, 560, 300, 30);
         versionLabel.setFont(new Font("Cambria", Font.PLAIN, 16));
         versionLabel.setForeground(Color.gray);
