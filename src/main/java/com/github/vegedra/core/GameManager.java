@@ -82,6 +82,7 @@ public class GameManager {
         }
     }
 
+    // TODO: uma classe propria para lidar com os timers?
     // Timer principal
     public void startTimer() {
         timer = new Timer(1000, e -> {
@@ -233,7 +234,7 @@ public class GameManager {
     }
 
 
-    // UI das cartas
+    // UI das cartas - TODO: colocar na classe UI?
     // Cor das cartas de acordo com sua raridade
     private String getRarityColor(Card.Rarity rarity) {
         switch (rarity) {
