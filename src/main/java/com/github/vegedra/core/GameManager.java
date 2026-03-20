@@ -27,7 +27,7 @@ public class GameManager {
     private final UI ui;
     private final CardUI cardUI;
     private final TimerManager timerManager;
-    //private final CardManager cardManager;
+    //private final CardManager cardManager;    TODO
 
     private static final int MAX_CARDS = 9;
     private Card[] activeCards = new Card[MAX_CARDS];
@@ -54,7 +54,7 @@ public class GameManager {
         this.rollCost = 20;
 
         //this.cardManager = new CardManager(player); TODO
-        //this.timerManager = new TimerManager(player, cardManager, this);
+        //this.timerManager = new TimerManager(player, cardManager, this);    // Substitui depois
         this.cardUI = new CardUI(ui, this, cHandler);
         this.timerManager = new TimerManager(player, this);
     }
@@ -135,6 +135,7 @@ public class GameManager {
         // Aplica efeitos da carta no jogador
         player.addClickValue(newCard.clickValue);
 
+        // Atualiza a UI
         cardUI.updateCardUI(emptyIndex, activeCards[emptyIndex]);
         updateCounter();
         updateCPSLabel();
@@ -261,6 +262,7 @@ public class GameManager {
         Card c = activeCards[index];
         if (c == null) return;
 
+        // Custo do descarte
         int discardCost = calcDiscardCost(c);
         if (player.getCoins() < discardCost) {
             ui.showMessage("Moedas insuficientes!", Color.RED);
@@ -271,6 +273,7 @@ public class GameManager {
         player.addClickValue(-c.clickValue);    // Remove bônus de clique
         activeCards[index] = null;              // Esvazia o slot
 
+        // Atualiza UI
         cardUI.updateCardUI(index, activeCards[index]);
         updateCounter();
         updateCPSLabel();
