@@ -11,8 +11,10 @@
 
 package com.github.vegedra.cards;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CardGenerator {
@@ -20,7 +22,7 @@ public class CardGenerator {
     private final Random random = new Random();
 
     // Gera uma carta aleatória baseada na Sorte atual do jogador (0–100)
-    public Card generateCard(int luck) {
+    public Card generateCard(int luck, Card[] activeCards) {
         List<CardData> pool = CardLoader.loadAll();
 
         if (pool.isEmpty()) {
@@ -36,16 +38,25 @@ public class CardGenerator {
                 .filter(cd -> rarity.name().equalsIgnoreCase(cd.rarity))
                 .collect(Collectors.toList());
 
-        // Se não tiver cartas dessa raridade, usa tudo no pool
         if (filtered.isEmpty()) {
             System.err.println("[CardGenerator] Nenhuma carta " + rarity.name() + " no pool. Usando pool completo.");
             filtered = pool;
         }
 
-        // 3. Sorteia uma carta do pool filtrado
-        CardData chosen = filtered.get(random.nextInt(filtered.size()));
+        // 3. Filtra cartas já ativas (evita duplicatas)
+        Set<String> activeIds = new HashSet<>();
+        for (Card c : activeCards) {
+            if (c != null) activeIds.add(c.id);
+        }
+        List<CardData> available = filtered.stream()
+                .filter(cd -> !activeIds.contains(cd.id))
+                .collect(Collectors.toList());
 
-        // 4. Instancia e retorna
+        // Fallback: se todas da raridade já estiverem ativas, usa pool completo filtrado
+        if (available.isEmpty()) available = filtered;
+
+        // 4. Sorteia e retorna
+        CardData chosen = available.get(random.nextInt(available.size()));
         return chosen.instantiate();
     }
 
@@ -95,6 +106,7 @@ public class CardGenerator {
                 "fallback", "Carta Perdida",
                 "O destino falhou em te entregar uma carta. Os demônios riem de você...",
                 Card.CardType.CLICK, Card.Rarity.COMMON,
-                1, 0, 0, 0);
+                1, 0, 0, 0,
+                false, Card.ActiveEffect.NONE);
     }
 }

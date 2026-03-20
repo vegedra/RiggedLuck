@@ -22,9 +22,11 @@ public class Main {
     // Variaveis e objetos
     private static UI ui;
     private static GameManager gameManager;
+    private static TimerManager timerManager;
     private Player player = new Player();
     private ClickerHandler cHandler = new ClickerHandler();
     private static VisibilityManager vm;
+
     public static int gameMode;
 
     // Inicio
@@ -39,10 +41,13 @@ public class Main {
 
         // Cria o gameManager
         gameManager = new GameManager(player, ui, cHandler, null);
+        ui.setTimerManager(gameManager.getTimerManager());
+
         UI.gameManager = gameManager;
+        timerManager = gameManager.getTimerManager();
 
         // Cria o visibility manager
-        vm = new VisibilityManager(ui, gameManager);
+        vm = new VisibilityManager(ui, gameManager, gameManager.getTimerManager());
 
         // Configura o vm no gameManager
         gameManager.setVisibilityManager(vm);
@@ -105,19 +110,26 @@ public class Main {
 
                 // Pausou o jogo
                 case "pause":
-                    gameManager.pauseGame();
+                    timerManager.pauseGame();
                     break;
                 case "resume":
-                    gameManager.resumeGame();
+                    timerManager.resumeGame();
                     break;
                 case "exitToMenu":
-                    gameManager.stopGameTimers();
+                    timerManager.stopGameTimers();
                     ui.switchTo("title");
                     gameManager.state = GameManager.GameState.TITLE;
                     Sound.BG1.playMusic();
                     break;
 
+                case "activate":
                 default:
+                    // Se usou carta de uso único
+                    if (action.startsWith("activate_")) {
+                        int index = Integer.parseInt(action.split("_")[1]);
+                        gameManager.activateCard(index);
+                    }
+
                     // Descartar cartas
                     if (action.startsWith("discard_")) {
                         int index = Integer.parseInt(action.split("_")[1]);

@@ -21,6 +21,8 @@ public class UI {
     // Variaveis e objetos
     private Player player;
     public static GameManager gameManager;
+    private TimerManager timerManager;
+
     private Timer messageTimer;
     public JFrame window;
     public JLabel counterLabel, effectLabel, luckLabel, cpsLabel;
@@ -30,15 +32,16 @@ public class UI {
 
     public JPanel titlePanel, gamePanel, pausePanel;
     private Font font1, font2, font3, buttonFont;
-    private CardLayout cardLayout;          // reference to the layout manager
-    private JPanel mainPanel;                // container that uses CardLayout
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
 
     // Construtor
-    public UI(Player player) {
-        this.player = player;
-    }
+    public UI(Player player) { this.player = player; }
 
-    // Cria e carrega fontes - TODO: Muda algumas fontes para uma melhor estética
+    // Adiciona o Timer Manager no construtor depois
+    public void setTimerManager(TimerManager tm) { this.timerManager = tm; }
+
+    // Cria e carrega fontes
     private void createFont() {
         font1 = new Font("Cambria", Font.PLAIN, 32);
         font2 = new Font("Cambria", Font.PLAIN, 15);
@@ -100,7 +103,7 @@ public class UI {
                                 JOptionPane.QUESTION_MESSAGE
                         );
                         if (optionGame == JOptionPane.YES_OPTION) {
-                            gameManager.stopGameTimers();
+                            timerManager.stopGameTimers();
                             switchTo("title");
                             gameManager.state = GameManager.GameState.TITLE;
                             Sound.BG1.playMusic();

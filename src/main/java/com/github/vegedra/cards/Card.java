@@ -36,6 +36,14 @@ public class Card {
     public final String desc;
     public final CardType type;
     public final Rarity rarity;
+    public final boolean active;
+    public boolean used;  // controle de uso único
+    public final ActiveEffect activeEffect;
+
+    // Efeitos para cartas de uso único
+    public enum ActiveEffect {
+        NONE, SECOND_CHANCE, DOUBLE_CLICK, DOUBLE_ALL, DEATH_RESET
+    }
 
     // Efeitos
     public final int clickValue;            // Ouro por clique
@@ -47,7 +55,8 @@ public class Card {
     public Card(String id, String name, String desc,
                 CardType type, Rarity rarity,
                 int clickValue, int coinsPerSecond,
-                float luckPerClick, float luckPerSecond) {
+                float luckPerClick, float luckPerSecond,
+                boolean active, ActiveEffect activeEffect) {
 
         this.id = id;
         this.name = name;
@@ -58,6 +67,9 @@ public class Card {
         this.coinsPerSecond = coinsPerSecond;
         this.luckPerClick = luckPerClick;
         this.luckPerSecond = luckPerSecond;
+        this.active = active;
+        this.activeEffect = activeEffect;
+        this.used = false;
     }
 
     // Representação textual do objeto

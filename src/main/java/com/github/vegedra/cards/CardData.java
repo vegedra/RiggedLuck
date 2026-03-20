@@ -18,8 +18,10 @@ public class CardData {
     public String id;                   // Ex: "o_mago"
     public String name;                 // Ex: "O Mago"
     public String desc;                 // Descrição
-    public String type;                 // "CLICK" | "PASSIVE" | "LUCK" | "DEFENSE" | "RISK" | "SYNERGY"
-    public String rarity;               // "COMMON" | "UNCOMMON" | "RARE" | "MYTHIC"
+    public String type;                 // CLICK, PASSIVE, LUCK, DEFENSE, RISK, SYNERGY
+    public String rarity;               // COMMON, UNCOMMON, RARE, MYTHIC
+    public boolean active;              // Se é carta de uso ativo/único
+    public String active_effect;
 
     // Efeitos
     public int click_value;             // bônus de ouro por clique
@@ -35,7 +37,9 @@ public class CardData {
                 click_value,
                 coins_per_second,
                 luck_per_click,
-                luck_per_second
+                luck_per_second,
+                active,
+                Card.ActiveEffect.valueOf(active_effect)
         );
     }
 }

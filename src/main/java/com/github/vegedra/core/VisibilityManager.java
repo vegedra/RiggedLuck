@@ -20,11 +20,13 @@ public class VisibilityManager {
     // Variaveis e objetos
     private UI ui;
     private GameManager gameManager;
+    private final TimerManager timerManager;
 
     // Construtor
-    public VisibilityManager(UI userInterface, GameManager gm) {
+    public VisibilityManager(UI userInterface, GameManager gm, TimerManager tm) {
         ui = userInterface;
         gameManager = gm;
+        timerManager = tm;
     }
 
     // Mostra a tela do menu inicial
@@ -50,8 +52,8 @@ public class VisibilityManager {
         }
 
         // Começa o timer
-        if (gameManager != null && gameManager.timer == null) {
-            gameManager.startTimer();
+        if (gameManager != null && !timerManager.isRunning()) {
+            timerManager.startTimer();
         }
 
         // Carregar tooltips
@@ -74,14 +76,14 @@ public class VisibilityManager {
     // Mostra a tela de game over
     public void showGameOverScreen() {
         // Para o timer
-        if (gameManager != null && gameManager.timer != null) {
-            gameManager.timer.stop();
+        if (gameManager != null) {
+            timerManager.stopGameTimers();
         }
 
         // Mostra a mensagem de game over
         JOptionPane.showMessageDialog(ui.window,
-                "Game Over! Você sobreviveu por " + gameManager.formatTime(gameManager.secondsElapsed) +
-                        "\nTotal de moedas ganhas: " + gameManager.player.getCoins(),
+                "Game Over! Você sobreviveu por " + gameManager.formatTime(timerManager.getSecondsElapsed()) +
+                        "\nTotal de moedas ganhas: " + gameManager.player.getTotalCoinsEarned(),
                 "Fim de Jogo",
                 JOptionPane.INFORMATION_MESSAGE);
 

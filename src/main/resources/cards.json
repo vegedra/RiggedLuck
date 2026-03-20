@@ -1,105 +1,6 @@
 {
   "cards": [
     {
-      "id": "o_mago",
-      "name": "O Mago",
-      "type": "CLICK",
-      "rarity": "COMMON",
-      "desc": "Cliques rendem +2 de ouro e +0,1% de sorte.",
-      "click_value": 2,
-      "luck_per_click": 0.1,
-      "coins_per_second": 0,
-      "luck_per_second": 0
-    },
-    {
-      "id": "a_imperatriz",
-      "name": "A Imperatriz",
-      "type": "CLICK",
-      "rarity": "UNCOMMON",
-      "desc": "Cliques rendem +5 de ouro e +0,2% de sorte.",
-      "click_value": 5,
-      "luck_per_click": 0.2,
-      "coins_per_second": 0,
-      "luck_per_second": 0
-    },
-    {
-      "id": "o_carro",
-      "name": "O Carro",
-      "type": "CLICK",
-      "rarity": "RARE",
-      "desc": "Cliques rendem +4 de ouro e +0,2% de sorte.",
-      "click_value": 4,
-      "luck_per_click": 0.2,
-      "coins_per_second": 0,
-      "luck_per_second": 0
-    },
-    {
-      "id": "a_sacerdotisa",
-      "name": "A Sacerdotisa",
-      "type": "PASSIVE",
-      "rarity": "COMMON",
-      "desc": "Gera +5 de ouro por segundo.",
-      "click_value": 0,
-      "luck_per_click": 0,
-      "coins_per_second": 5,
-      "luck_per_second": 0
-    },
-    {
-      "id": "roda_da_fortuna",
-      "name": "A Roda da Fortuna",
-      "type": "PASSIVE",
-      "rarity": "UNCOMMON",
-      "desc": "Gera +10 de ouro por segundo.",
-      "click_value": 0,
-      "luck_per_click": 0,
-      "coins_per_second": 10,
-      "luck_per_second": 0
-    },
-    {
-      "id": "a_lua",
-      "name": "A Lua",
-      "type": "LUCK",
-      "rarity": "UNCOMMON",
-      "desc": "Concede +0,5% de sorte por segundo.",
-      "click_value": 0,
-      "luck_per_click": 0,
-      "coins_per_second": 0,
-      "luck_per_second": 0.5
-    },
-    {
-      "id": "o_sol",
-      "name": "O Sol",
-      "type": "LUCK",
-      "rarity": "RARE",
-      "desc": "Concede +1,0% de sorte por segundo.",
-      "click_value": 0,
-      "luck_per_click": 0,
-      "coins_per_second": 0,
-      "luck_per_second": 1.0
-    },
-    {
-      "id": "o_diabo",
-      "name": "O Diabo",
-      "type": "RISK",
-      "rarity": "RARE",
-      "desc": "Gera +25 de ouro por segundo e +0,5% de sorte por segundo.",
-      "click_value": 0,
-      "luck_per_click": 0,
-      "coins_per_second": 25,
-      "luck_per_second": 0.5
-    },
-    {
-      "id": "a_torre",
-      "name": "A Torre",
-      "type": "RISK",
-      "rarity": "RARE",
-      "desc": "Cliques rendem +30 de ouro.",
-      "click_value": 30,
-      "luck_per_click": 0,
-      "coins_per_second": 0,
-      "luck_per_second": 0
-    },
-    {
       "id": "o_louco",
       "name": "O Louco",
       "type": "CLICK",
@@ -108,7 +9,48 @@
       "click_value": 1,
       "luck_per_click": 0.05,
       "coins_per_second": 0,
-      "luck_per_second": 0
+      "luck_per_second": 0,
+      "active": false,
+      "active_effect": "NONE"
+    },
+    {
+      "id": "o_mago",
+      "name": "O Mago",
+      "type": "SYNERGY",
+      "rarity": "COMMON",
+      "desc": "+2 ouro/clique para cada carta de Clique ativa.",
+      "click_value": 0,
+      "luck_per_click": 0,
+      "coins_per_second": 0,
+      "luck_per_second": 0,
+      "active": false,
+      "active_effect": "NONE"
+    },
+    {
+      "id": "a_imperatriz",
+      "name": "A Imperatriz",
+      "type": "DEFENSE",
+      "rarity": "UNCOMMON",
+      "desc": "Pagar cobradores custa 30% menos.",
+      "click_value": 0,
+      "luck_per_click": 0,
+      "coins_per_second": 0,
+      "luck_per_second": 0,
+      "active": false,
+      "active_effect": "NONE"
+    },
+    {
+      "id": "o_carro",
+      "name": "O Carro",
+      "type": "CLICK",
+      "rarity": "RARE",
+      "desc": "Cliques rendem +4 de ouro, mas aumenta oscilação de sorte em 30%.",
+      "click_value": 4,
+      "luck_per_click": 0.2,
+      "coins_per_second": 0,
+      "luck_per_second": 0,
+      "active": false,
+      "active_effect": "NONE"
     },
     {
       "id": "a_papisa",
@@ -119,29 +61,139 @@
       "click_value": 0,
       "luck_per_click": 0,
       "coins_per_second": 3,
-      "luck_per_second": 0
+      "luck_per_second": 0,
+      "active": false,
+      "active_effect": "NONE"
+    },
+    {
+      "id": "a_sacerdotisa",
+      "name": "A Sacerdotisa",
+      "type": "SYNERGY",
+      "rarity": "COMMON",
+      "desc": "+2 ouro/s para cada carta Passiva ativa.",
+      "click_value": 0,
+      "luck_per_click": 0,
+      "coins_per_second": 0,
+      "luck_per_second": 0,
+      "active": false,
+      "active_effect": "NONE"
+    },
+    {
+      "id": "roda_da_fortuna",
+      "name": "A Roda da Fortuna",
+      "type": "PASSIVE",
+      "rarity": "UNCOMMON",
+      "desc": "Gera +10 de ouro por segundo.",
+      "click_value": 0,
+      "luck_per_click": 0,
+      "coins_per_second": 10,
+      "luck_per_second": 0,
+      "active": false,
+      "active_effect": "NONE"
+    },
+    {
+      "id": "o_julgamento",
+      "name": "O Julgamento",
+      "type": "PASSIVE",
+      "rarity": "RARE",
+      "desc": "A cada 60 segundos, dobra toda geração passiva por 3 segundos.",
+      "click_value": 0,
+      "luck_per_click": 0,
+      "coins_per_second": 0,
+      "luck_per_second": 0,
+      "active": false,
+      "active_effect": "NONE"
+    },
+    {
+      "id": "a_lua",
+      "name": "A Lua",
+      "type": "LUCK",
+      "rarity": "UNCOMMON",
+      "desc": "Concede +0,5% de sorte por segundo e +3% sorte para cada carta de Sorte ativa.",
+      "click_value": 0,
+      "luck_per_click": 0,
+      "coins_per_second": 0,
+      "luck_per_second": 0.5,
+      "active": false,
+      "active_effect": "NONE"
+    },
+    {
+      "id": "o_sol",
+      "name": "O Sol",
+      "type": "LUCK",
+      "rarity": "RARE",
+      "desc": "Concede +1,0% de sorte por segundo.",
+      "click_value": 0,
+      "luck_per_click": 0,
+      "coins_per_second": 0,
+      "luck_per_second": 1.0,
+      "active": false,
+      "active_effect": "NONE"
     },
     {
       "id": "a_estrela",
       "name": "A Estrela",
       "type": "LUCK",
       "rarity": "RARE",
-      "desc": "Concede +0,8% de sorte por segundo.",
+      "desc": "Segunda chance: se sorte chegar a 0, reseta para 15% (uso único).",
       "click_value": 0,
       "luck_per_click": 0,
       "coins_per_second": 0,
-      "luck_per_second": 0.8
+      "luck_per_second": 0,
+      "active": true,
+      "active_effect": "SECOND_CHANCE"
+    },
+    {
+      "id": "o_enforcado",
+      "name": "O Enforcado",
+      "type": "LUCK",
+      "rarity": "UNCOMMON",
+      "desc": "Cobradores demoram 20% mais para aparecer.",
+      "click_value": 0,
+      "luck_per_click": 0,
+      "coins_per_second": 0,
+      "luck_per_second": 0,
+      "active": false,
+      "active_effect": "NONE"
+    },
+    {
+      "id": "o_diabo",
+      "name": "O Diabo",
+      "type": "RISK",
+      "rarity": "RARE",
+      "desc": "Gera +25 de ouro por segundo e +0,5% de sorte por segundo, mas dobra a oscilação de sorte.",
+      "click_value": 0,
+      "luck_per_click": 0,
+      "coins_per_second": 25,
+      "luck_per_second": 0.5,
+      "active": false,
+      "active_effect": "NONE"
+    },
+    {
+      "id": "a_torre",
+      "name": "A Torre",
+      "type": "RISK",
+      "rarity": "RARE",
+      "desc": "Cliques rendem +30 de ouro, mas sorte cai 0,5% por segundo.",
+      "click_value": 30,
+      "luck_per_click": 0,
+      "coins_per_second": 0,
+      "luck_per_second": -0.5,
+      "active": false,
+      "active_effect": "NONE"
     },
     {
       "id": "o_ermitao",
       "name": "O Eremita",
       "type": "DEFENSE",
       "rarity": "UNCOMMON",
-      "desc": "Aumenta a sorte em 0,3% por segundo (futuramente ajudará contra cobradores).",
+      "desc": "Cobradores não afetam sorte diretamente.",
       "click_value": 0,
       "luck_per_click": 0,
       "coins_per_second": 0,
-      "luck_per_second": 0.3
+      "luck_per_second": 0,
+      "active": false,
+      "active_effect": "NONE"
     },
     {
       "id": "a_justica",
@@ -152,7 +204,61 @@
       "click_value": 0,
       "luck_per_click": 0,
       "coins_per_second": 0,
-      "luck_per_second": 0.6
+      "luck_per_second": 0.6,
+      "active": false,
+      "active_effect": "NONE"
+    },
+    {
+      "id": "o_mundo",
+      "name": "O Mundo",
+      "type": "SYNERGY",
+      "rarity": "MYTHIC",
+      "desc": "Se tiver 9 cartas ativas, todos os efeitos de cartas são duplicados.",
+      "click_value": 0,
+      "luck_per_click": 0,
+      "coins_per_second": 0,
+      "luck_per_second": 0,
+      "active": false,
+      "active_effect": "NONE"
+    },
+    {
+      "id": "a_forca",
+      "name": "A Força",
+      "type": "CLICK",
+      "rarity": "MYTHIC",
+      "desc": "Ativa: dobra ouro de cliques por 5 segundos (uso único).",
+      "click_value": 0,
+      "luck_per_click": 0,
+      "coins_per_second": 0,
+      "luck_per_second": 0,
+      "active": true,
+      "active_effect": "DOUBLE_CLICK"
+    },
+    {
+      "id": "a_lua_cheia",
+      "name": "A Lua Cheia",
+      "type": "RISK",
+      "rarity": "MYTHIC",
+      "desc": "Ativa: dobra TODOS os efeitos (positivos e negativos) por 1 minuto (uso único).",
+      "click_value": 0,
+      "luck_per_click": 0,
+      "coins_per_second": 0,
+      "luck_per_second": 0,
+      "active": true,
+      "active_effect": "DOUBLE_ALL"
+    },
+    {
+      "id": "a_morte",
+      "name": "A Morte",
+      "type": "RISK",
+      "rarity": "MYTHIC",
+      "desc": "Ativa: descarta todas as cartas, ganha 500 ouro por carta descartada e reseta sorte para 50% (uso único).",
+      "click_value": 0,
+      "luck_per_click": 0,
+      "coins_per_second": 0,
+      "luck_per_second": 0,
+      "active": true,
+      "active_effect": "DEATH_RESET"
     }
   ]
 }

@@ -14,6 +14,7 @@ package com.github.vegedra.core;
 import com.github.vegedra.audio.Sound;
 import com.github.vegedra.cards.Card;
 import com.github.vegedra.cards.CardGenerator;
+import com.github.vegedra.cards.CardManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,21 +23,23 @@ import java.awt.event.ActionListener;
 public class GameManager {
 
     // Variáveis e objetos
-    public Player player;
-    private UI ui;
+    public final Player player;
+    private final UI ui;
+    private final CardUI cardUI;
+    private final TimerManager timerManager;
+    //private final CardManager cardManager;
+
     private static final int MAX_CARDS = 9;
     private Card[] activeCards = new Card[MAX_CARDS];
     private CardGenerator generator = new CardGenerator();
-    public Timer timer, messageTimer;
     private VisibilityManager vm;
     private ActionListener cHandler;
 
-    public int secondsElapsed = 0;
     public boolean firstTimePlaying = false;
     public int currentGameMode;
-    private int clicksThisSecond = 0;
     public int rollCost;
     public int rollsMade = 0;
+    public boolean doubleAllActive = false;
 
     // Estados de jogo
     public enum GameState { TITLE, GAME, PAUSED, GAME_OVER }
@@ -49,13 +52,19 @@ public class GameManager {
         this.cHandler = cHandler;
         this.vm       = vm;
         this.rollCost = 20;
+
+        //this.cardManager = new CardManager(player); TODO
+        //this.timerManager = new TimerManager(player, cardManager, this);
+        this.cardUI = new CardUI(ui, this, cHandler);
+        this.timerManager = new TimerManager(player, this);
     }
 
     public void setVisibilityManager(VisibilityManager vm) { this.vm = vm; }
+    public TimerManager getTimerManager() { return timerManager; }
 
     // Atualização de UI
     public void updateCounter()   { ui.counterLabel.setText(player.getCoins() + " moedas"); }
-    public void updateCPSLabel()  { ui.cpsLabel.setText("Moedas por segundo: " + getTotalCPS()); }
+    public void updateCPSLabel()  { ui.cpsLabel.setText("Moedas por segundo: " + computeTotalCPS()); }
     public void updateLuckLabel() {
         ui.luckLabel.setText("Sorte: " + player.getLuck() + "%");
 
@@ -82,83 +91,20 @@ public class GameManager {
         }
     }
 
-    // TODO: uma classe propria para lidar com os timers?
-    // Timer principal
-    public void startTimer() {
-        timer = new Timer(1000, e -> {
-            if (state == GameState.GAME_OVER) { timer.stop(); return; }
-            secondsElapsed++;
-
-            // Geração passiva de ouro
-            player.changeCoins(getTotalCPS());
-
-            // Sorte passiva
-            player.changeLuck(Math.round(getTotalLuckPerSecond())); // sorte passiva
-
-            // Oscilação + tendência natural da sorte
-            updateLuck(0);
-
-            updateRollCost();
-            updateCounter();
-            updateCPSLabel();
-            updateLuckLabel();
-            // TODO: checkCollectorSpawn();
-
-            checkGameOver();
-        });
-        timer.start();
-    }
-
-    // Calculo de totais
-    public int getTotalCPS() {
-        int total = 0;
-
-        // CPS base das cartas
-        for (Card c : activeCards) {
-            if (c != null) total += c.coinsPerSecond;
-        }
-        return total;
-    }
-    private float getTotalLuckPerSecond() {
-        float total = 0;
-        for (Card c : activeCards) {
-            if (c != null) total += c.luckPerSecond;
-        }
-        return total;
-    }
-
-    // Oscilação da sorte (chamado a cada segundo, com cliques no período)
-    private void updateLuck(int clicksInSecond) {
-        // Tendência negativa cresce com o tempo
-        float minutes = secondsElapsed / 60f;
-        float tendency = 0.5f + minutes * 0.15f;
-        tendency = Math.min(tendency, 3.5f);
-
-        // Oscilação aleatória crescente
-        float oscBase = 2f + minutes * 0.4f;
-        oscBase = Math.min(oscBase, 12f);
-        float variation = (float)(Math.random() * oscBase * 2) - oscBase;
-
-        // Bônus por clique (inclui bônus das cartas)
-        float clickBonus = 0.2f; // base
-        for (Card c : activeCards) {
-            if (c != null) clickBonus += c.luckPerClick;
-        }
-
-        float delta = variation - tendency + (clickBonus * clicksInSecond);
-        player.changeLuck(Math.round(delta));
-        updateLuckLabel();
-    }
+    // Getters
+    public Card[] getActiveCards() { return activeCards; }
+    public void showGamePanel() { vm.showGamePanel(); }
+    public void showPauseScreen() { vm.showPauseScreen(); }
 
     // Clicker
     public void handleClick() {
-        int baseGold = player.getClickValue();
+        int baseGold = computeTotalClickValue();
         player.changeCoins(baseGold);
         Sound.CLICK.play();
 
         // Acumula cliques para o próximo tick de sorte
         // (precisamos de um contador de cliques no segundo atual)
-        clicksThisSecond++; // variável de instância a ser adicionada
+        timerManager.incrementClicksThisSecond(); // variável de instância a ser adicionada
         updateCounter();
         checkGameOver();
     }
@@ -183,18 +129,131 @@ public class GameManager {
         Sound.ROLL.play();
         rollsMade++;
 
-        Card newCard = generator.generateCard(player.getLuck());
+        Card newCard = generator.generateCard(player.getLuck(), activeCards);
         activeCards[emptyIndex] = newCard;
 
         // Aplica efeitos da carta no jogador
         player.addClickValue(newCard.clickValue);
 
-        updateCardUI(emptyIndex);
+        cardUI.updateCardUI(emptyIndex, activeCards[emptyIndex]);
         updateCounter();
         updateCPSLabel();
         updateLuckLabel();
         updateRollCost();
         ui.showMessage("Nova carta: " + newCard.name, Color.GREEN);
+    }
+
+    // Cartas de uso ativo
+    public void activateCard(int index) {
+        Card c = activeCards[index];
+
+        // Ignora se slot vazio, carta não é ativa, ou já foi usada
+        if (c == null || !c.active || c.used) return;
+
+        // Marca como usada antes de executar
+        c.used = true;
+
+        // Os tipos de efeito
+        switch (c.activeEffect) {
+            case DOUBLE_CLICK:
+                // A Força: dobra o valor de clique do player por 5 segundos
+                // Guarda o valor original, aplica o dobro, agenda restauração via Timer
+                int originalClick = player.getClickValue();
+                player.addClickValue(originalClick * 2);
+                new Timer(5000, e -> {
+                    player.addClickValue(originalClick); // restaura após 5s
+                    ((Timer) e.getSource()).stop();       // para o timer de uso único
+                }).start();
+                ui.showMessage("A Força ativada! Cliques dobrados por 5s.", Color.ORANGE);
+                break;
+
+            case DOUBLE_ALL:
+                // A Lua Cheia: dobra TODOS os efeitos por 60 segundos
+                // Por ora seta uma flag no GameManager que os cálculos consultam
+                doubleAllActive = true;
+                new Timer(60000, e -> {
+                    doubleAllActive = false;
+                    ((Timer) e.getSource()).stop();
+                }).start();
+                ui.showMessage("A Lua Cheia ativada! Tudo dobrado por 1 minuto.", Color.MAGENTA);
+                break;
+
+            case DEATH_RESET:
+                // A Morte: descarta todas as cartas, ganha 500 por carta, reseta sorte para 50
+                int cardCount = 0;
+                for (int i = 0; i < activeCards.length; i++) {
+                    if (activeCards[i] != null && i != index) { // não conta ela mesma
+                        player.addClickValue(-activeCards[i].clickValue); // remove bônus
+                        activeCards[i] = null;
+                        cardUI.updateCardUI(i, activeCards[i]);
+                        cardCount++;
+                    }
+                }
+                player.changeCoins(cardCount * 500); // 500 por carta destruída
+                player.setLuck(50);                  // reseta sorte para 50%
+                updateCounter();
+                updateLuckLabel();
+                updateCPSLabel();
+                ui.showMessage("A Morte! +" + (cardCount * 500) + " moedas. Sorte resetada.", Color.RED);
+                break;
+
+            case SECOND_CHANCE:
+                // Verificada no game over
+                break;
+
+            default:
+                break;
+        }
+        cardUI.updateCardUI(index, activeCards[index]);  // slot fica cinza/consumido
+    }
+
+    // Efeito carta - TODO: Coloca no CardManager depois
+    public void activateJulgamento() {
+        for (Card c : activeCards) {
+            if (c != null && c.id.equals("o_julgamento")) {
+                // Dobra a geração passiva por 3s: equivale a ganhar 3x o CPS atual
+                int bonus = computeTotalCPS() * 3;
+                player.changeCoins(bonus);
+                updateCounter();
+                ui.showMessage("O Julgamento! +" + bonus + " moedas!", Color.YELLOW);
+                return;
+            }
+        }
+    }
+
+    // Calcula sorte e moedas/segundo
+    public float computeTotalLuckPerSecond() {
+        float total = 0;
+        for (Card c : activeCards) {
+            if (c != null) total += c.luckPerSecond;
+        }
+        // O Mundo: dobra tudo se 9 cartas
+        if (hasCard("o_mundo") && countActiveCards() == 9) total *= 2;
+        return total;
+    }
+    public int computeTotalCPS() {
+        int base = 0;
+        for (Card c : activeCards) {
+            if (c != null) base += c.coinsPerSecond;
+        }
+        // A Sacerdotisa: +2/s por carta PASSIVE
+        if (hasCard("a_sacerdotisa")) base += countCardsOfType(Card.CardType.PASSIVE) * 2;
+        // O Mundo: dobra tudo se 9 cartas
+        if (hasCard("o_mundo") && countActiveCards() == 9) base *= 2;
+        return base;
+    }
+    public int computeTotalClickValue() {
+        int base = player.getClickValue();
+        // O Mago: +2/clique por carta CLICK
+        if (hasCard("o_mago")) base += countCardsOfType(Card.CardType.CLICK) * 2;
+        if (hasCard("o_mundo") && countActiveCards() == 9) base *= 2;
+        return base;
+    }
+    public boolean hasCard(String id) {
+        for (Card c : activeCards) {
+            if (c != null && c.id.equals(id)) return true;
+        }
+        return false;
     }
 
     // Descarte de carta
@@ -212,7 +271,7 @@ public class GameManager {
         player.addClickValue(-c.clickValue);    // Remove bônus de clique
         activeCards[index] = null;              // Esvazia o slot
 
-        updateCardUI(index);
+        cardUI.updateCardUI(index, activeCards[index]);
         updateCounter();
         updateCPSLabel();
         updateLuckLabel();
@@ -223,7 +282,8 @@ public class GameManager {
     }
 
     // Custo de descarte: baseado em clickValue, CPS e efeito de sorte
-    private int calcDiscardCost(Card c) {
+    // TODO: mover para CardManager
+    public int calcDiscardCost(Card c) {
         // Cartas mais poderosas custam mais pra descartar
         int base = (Math.abs(c.clickValue) + Math.abs(c.coinsPerSecond)) * 2;
         // Cartas de Sorte/Risco/Sinérgicas têm custo mínimo de 10
@@ -231,68 +291,6 @@ public class GameManager {
             base = Math.max(base, 10);
         }
         return base;
-    }
-
-
-    // UI das cartas - TODO: colocar na classe UI?
-    // Cor das cartas de acordo com sua raridade
-    private String getRarityColor(Card.Rarity rarity) {
-        switch (rarity) {
-            case MYTHIC:   return "#FF44FF";
-            case RARE:     return "#44AAFF";
-            case UNCOMMON: return "#44FF88";
-            default:       return "#000000";
-        }
-    }
-    // Atualiza UI das cartas
-    public void updateCardUI(int index) {
-        ui.cardSlots[index].removeAll();
-        Card c = activeCards[index];
-        ui.cardSlots[index].setLayout(new BorderLayout());
-
-        if (c == null) {
-            JLabel empty = new JLabel("Vazio", SwingConstants.CENTER);
-            empty.setFont(new Font("Cambria", Font.PLAIN, 12));
-            ui.cardSlots[index].add(empty, BorderLayout.CENTER);
-            ui.cardSlots[index].setToolTipText(null);
-        } else {
-            // Garantir que nome e descrição não sejam nulos
-            String cardName = (c.name != null) ? c.name : "Carta sem nome";
-            String cardDesc = (c.desc != null) ? c.desc : "";
-
-            // Nome com cor da raridade
-            String rarityColor = getRarityColor(c.rarity);
-            JLabel nameLabel = new JLabel(
-                    "<html><font color='" + getRarityColor(c.rarity) + "'>" + cardName + "</font></html>",
-                    SwingConstants.CENTER
-            );
-            nameLabel.setFont(new Font("Cambria", Font.BOLD, 11)); // tamanho ajustável
-
-            // Botão de descarte pequeno
-            JButton discard = new JButton("X");
-            discard.setFocusPainted(false);
-            discard.setMargin(new Insets(2, 4, 2, 4));
-            discard.setFont(new Font("Cambria", Font.PLAIN, 10));
-            discard.setActionCommand("discard_" + index);
-            discard.addActionListener(cHandler);
-
-            ui.cardSlots[index].add(nameLabel, BorderLayout.CENTER);
-            ui.cardSlots[index].add(discard, BorderLayout.EAST);
-
-            // Tooltip completo
-            int discardCost = calcDiscardCost(c);
-            String tooltip = "<html><b>" + cardName + " (" + c.rarity + ")</b><br><br>" +
-                    cardDesc + "<br>" +
-                    "Clique: " + c.clickValue + "<br>" +
-                    "Moedas/s: " + c.coinsPerSecond + "<br>" +
-                    "Sorte/clique: " + c.luckPerClick + "%<br>" +
-                    "Sorte/s: " + c.luckPerSecond + "%<br><br>" +
-                    "Descartar custa: " + discardCost + " moedas</html>";
-            ui.cardSlots[index].setToolTipText(tooltip);
-        }
-
-        ui.cardSlots[index].revalidate();
-        ui.cardSlots[index].repaint();
     }
 
 
@@ -321,34 +319,24 @@ public class GameManager {
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
 
-    // Para os timers
-    public void stopGameTimers() {
-        if (timer != null)        { timer.stop();        timer = null; }
-        if (messageTimer != null) { messageTimer.stop(); messageTimer = null; }
-    }
-
-    // Pausar e continuar jogo
-    public void pauseGame() {
-        if (state == GameState.GAME) {
-            state = GameState.PAUSED;
-            stopGameTimers();           // Para o timer principal e o de mensagens
-            vm.showPauseScreen();       // Mostra a tela de pausa
-        }
-    }
-    public void resumeGame() {
-        if (state == GameState.PAUSED) {
-            state = GameState.GAME;
-            startTimer();               // Reinicia o timer principal (cria um novo)
-            vm.showGamePanel();         // Volta para o painel do jogo (sem reintrodução)
-        }
-    }
-
     // Game Over
-    private void checkGameOver() {
+    public void checkGameOver() {
         if (player.getLuck() <= 0 || player.getCoins() < 0) {
+            // Verifica se A Estrela está disponível antes de game over
+            for (int i = 0; i < activeCards.length; i++) {
+                Card c = activeCards[i];
+                if (c != null && c.activeEffect == Card.ActiveEffect.SECOND_CHANCE && !c.used) {
+                    c.used = true;
+                    player.setLuck(15); // segunda chance: sorte vai pra 15%
+                    updateLuckLabel();
+                    cardUI.updateCardUI(i, activeCards[i]);
+                    ui.showMessage("A Estrela te salvou! Sorte: 15%", Color.CYAN);
+                    return; // não declara game over
+                }
+            }
+            // Game over de verdade
             state = GameState.GAME_OVER;
             vm.showGameOverScreen();
-            System.out.println("Game Over!");
         }
     }
 
@@ -359,21 +347,20 @@ public class GameManager {
 
     // Reset
     public void resetGame() {
-        stopGameTimers();
+        timerManager.stopGameTimers();
         player.reset();
 
         // Remove cartas ativas
         for (int i = 0; i < activeCards.length; i++) {
             activeCards[i] = null;
-            updateCardUI(i);
+            cardUI.updateCardUI(i, activeCards[i]);
         }
 
         // Reseta variaveis
-        secondsElapsed     = 0;
+        timerManager.resetCounters();
         rollsMade          = 0;
         rollCost           = 20;
         firstTimePlaying   = false;
-        clicksThisSecond = 0;
 
         // Atualiza UI
         updateCounter();
@@ -384,7 +371,7 @@ public class GameManager {
 
     // Fechar tudo
     public void shutdown() {
-        stopGameTimers();
+        timerManager.stopGameTimers();
         Sound.closeAll();
     }
 }
