@@ -51,7 +51,7 @@ public class Card {
     public final float luckPerClick;        // Sorte por clique (%)
     public final float luckPerSecond;       // Sorte por segundo (%)
 
-    // --- Construtor completo ---
+    // Construtor
     public Card(String id, String name, String desc,
                 CardType type, Rarity rarity,
                 int clickValue, int coinsPerSecond,
