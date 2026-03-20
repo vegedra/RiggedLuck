@@ -59,7 +59,7 @@ public class Main {
         vm.showTitleScreen();
     }
 
-    // TODO: colocar em classe propria (inputHandler)?
+    
     // Ações e eventos (click)
     public static class ClickerHandler implements ActionListener {
         public void actionPerformed(ActionEvent event) {
