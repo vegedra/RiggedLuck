@@ -54,13 +54,14 @@ public enum Sound {
     Sound(String path, boolean isMusic) {
         this.isMusic = isMusic;
 
+        // Carrega o arquivo do som
         try {
             URL url = Sound.class.getResource(path);
+            // Erro
             if (url == null) {
                 System.err.println("Áudio não encontrado: " + path);
                 return;
             }
-
             AudioInputStream ais = AudioSystem.getAudioInputStream(url);
 
             // Converte para PCM (necessário para MP3 via MP3SPI)
@@ -79,6 +80,7 @@ public enum Sound {
             clip = AudioSystem.getClip();
             clip.open(pcmAis);
 
+        // Erro
         } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
             System.err.println("Erro ao carregar som: " + path);
             e.printStackTrace();
@@ -109,6 +111,7 @@ public enum Sound {
 
         setVolume(musicVolume);
 
+        // Loop
         if (clip.isRunning()) clip.stop();
         clip.setFramePosition(0);
         clip.loop(Clip.LOOP_CONTINUOUSLY);
