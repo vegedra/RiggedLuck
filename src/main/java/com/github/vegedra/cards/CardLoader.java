@@ -30,11 +30,13 @@ public class CardLoader {
         if (allCards != null) return allCards;
 
         try (InputStream is = CardLoader.class.getResourceAsStream("/cards.json")) {
+            // Erro
             if (is == null) {
                 System.err.println("[CardLoader] ERRO: cards.json não encontrado em resources");
                 return new ArrayList<>();
             }
 
+            // Carrega os dados
             Gson gson = new Gson();
             Type mapType = new TypeToken<Map<String, List<CardData>>>() {}.getType();
             Map<String, List<CardData>> root = gson.fromJson(new InputStreamReader(is), mapType);
@@ -47,6 +49,7 @@ public class CardLoader {
             }
             return allCards;
 
+        // Erro
         } catch (Exception e) {
             System.err.println("[CardLoader] Erro: " + e.getMessage());
             return new ArrayList<>();
