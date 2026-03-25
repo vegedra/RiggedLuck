@@ -256,8 +256,13 @@ public class UI {
         exitButton.setActionCommand("exit");
         exitButton.addActionListener(cHandler);
         titlePanel.add(exitButton);
+<<<<<<< HEAD
         // Versão e copyright
         JLabel versionLabel = new JLabel("Versão 0.0.9 © 2026 Digital Cake Studio", SwingConstants.CENTER);
+=======
+
+        JLabel versionLabel = new JLabel("Versão 0.0.12 © 2026 Digital Cake Studio", SwingConstants.CENTER);
+>>>>>>> 0f0928bed22966f0dde21d24ba5d693acf041793
         versionLabel.setBounds(245, 560, 300, 30);
         versionLabel.setFont(new Font("Cambria", Font.PLAIN, 16));
         versionLabel.setForeground(Color.gray);

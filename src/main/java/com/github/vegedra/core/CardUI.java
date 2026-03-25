@@ -19,10 +19,12 @@ import java.awt.event.ActionListener;
 
 public class CardUI {
 
+    // Objeto das classes
     private final UI ui;
     private final GameManager gm;
     private final ActionListener cHandler;
 
+    // Construtor
     public CardUI(UI ui, GameManager gm, ActionListener cHandler) {
         this.ui = ui;
         this.gm = gm;
@@ -44,6 +46,7 @@ public class CardUI {
         ui.cardSlots[index].removeAll();
         ui.cardSlots[index].setLayout(new BorderLayout());
 
+        // Se nao houver carta no slot
         if (c == null) {
             JLabel empty = new JLabel("Vazio", SwingConstants.CENTER);
             empty.setFont(new Font("Cambria", Font.PLAIN, 12));
@@ -74,8 +77,8 @@ public class CardUI {
             boolean playerActivated = c.active
                     && c.activeEffect != Card.ActiveEffect.SECOND_CHANCE;
 
+            // Carta ativa disponível: vira botão
             if (playerActivated && !c.used) {
-                // Carta ativa disponível: vira botão laranja
                 JButton activateBtn = new JButton(
                         "<html><center><font color='" + getRarityColor(c.rarity) + "'>"
                                 + cardName + "</font><br><font size='1'>[ USAR ]</font></center></html>"
@@ -84,11 +87,11 @@ public class CardUI {
                 activateBtn.setFont(new Font("Cambria", Font.BOLD, 10));
                 activateBtn.setActionCommand("activate_" + index);
                 activateBtn.addActionListener(cHandler);
-                activateBtn.setToolTipText(tooltip); // ← tooltip no botão
+                activateBtn.setToolTipText(tooltip);
                 ui.cardSlots[index].add(activateBtn, BorderLayout.CENTER);
 
+            // Carta já usada: nome riscado em cinza
             } else if (c.active && c.used) {
-                // Carta já usada: nome riscado em cinza
                 JLabel usedLabel = new JLabel(
                         "<html><center><font color='gray'><s>" + cardName + "</s></font>"
                                 + "<br><font size='1' color='gray'>usado</font></center></html>",
@@ -98,8 +101,8 @@ public class CardUI {
                 usedLabel.setToolTipText(tooltip); // ← tooltip no label
                 ui.cardSlots[index].add(usedLabel, BorderLayout.CENTER);
 
+            // Carta passiva
             } else {
-                // Carta passiva ou A Estrela: só mostra o nome colorido
                 JLabel passiveLabel = new JLabel(
                         "<html><font color='" + getRarityColor(c.rarity) + "'>"
                                 + cardName + "</font></html>",
@@ -125,5 +128,4 @@ public class CardUI {
         ui.cardSlots[index].revalidate();
         ui.cardSlots[index].repaint();
     }
-
 }

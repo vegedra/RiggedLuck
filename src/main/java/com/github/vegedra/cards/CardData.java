@@ -29,6 +29,7 @@ public class CardData {
     public float luck_per_click;        // sorte ganha por clique
     public float luck_per_second;       // sorte passiva por segundo
 
+    // Instancia do json
     public Card instantiate() {
         return new Card(
                 id, name, desc,
