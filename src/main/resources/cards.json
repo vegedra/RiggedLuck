@@ -19,7 +19,7 @@
       "type": "SYNERGY",
       "rarity": "COMMON",
       "desc": "+2 ouro/clique para cada carta de Clique ativa.",
-      "click_value": 0,
+      "click_value": 2,
       "luck_per_click": 0,
       "coins_per_second": 0,
       "luck_per_second": 0,
@@ -73,7 +73,7 @@
       "desc": "+2 ouro/s para cada carta Passiva ativa.",
       "click_value": 0,
       "luck_per_click": 0,
-      "coins_per_second": 0,
+      "coins_per_second": 2,
       "luck_per_second": 0,
       "active": false,
       "active_effect": "NONE"

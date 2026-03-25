@@ -218,7 +218,6 @@ public class UI {
         cardPanel.setLayout(new GridLayout(1, 9, 5, 0));    // 1 linha, 9 colunas, espaçamento horizontal 5px
         cardPanel.setBackground(Color.white);
         cardPanel.setBorder(BorderFactory.createTitledBorder("Cartas Ativas"));
-
         for (int i = 0; i < 9; i++) {
             cardSlots[i] = new JPanel();
             cardSlots[i].setBackground(Color.white);
@@ -235,13 +234,13 @@ public class UI {
         titlePanel = new JPanel();
         titlePanel.setLayout(null);
         titlePanel.setBackground(Color.white);
-
+        // Titulo
         JLabel titleLabel = new JLabel("Rigged Luck", SwingConstants.CENTER);
         titleLabel.setBounds(250, 150, 300, 50);
         titleLabel.setFont(font3);
         titleLabel.setForeground(Color.black);
         titlePanel.add(titleLabel);
-
+        // Iniciar jogo
         JButton startButton = new JButton("Iniciar Jogo");
         startButton.setBounds(300, 300, 200, 50);
         startButton.setFont(buttonFont);
@@ -249,7 +248,7 @@ public class UI {
         startButton.setActionCommand("start");
         startButton.addActionListener(cHandler);
         titlePanel.add(startButton);
-
+        // Sair
         JButton exitButton = new JButton("Sair");
         exitButton.setBounds(300, 370, 200, 50);
         exitButton.setFont(buttonFont);
@@ -257,7 +256,7 @@ public class UI {
         exitButton.setActionCommand("exit");
         exitButton.addActionListener(cHandler);
         titlePanel.add(exitButton);
-
+        // Versão e copyright
         JLabel versionLabel = new JLabel("Versão 0.0.9 © 2026 Digital Cake Studio", SwingConstants.CENTER);
         versionLabel.setBounds(245, 560, 300, 30);
         versionLabel.setFont(new Font("Cambria", Font.PLAIN, 16));
