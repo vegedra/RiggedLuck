@@ -25,7 +25,7 @@ public class UI {
 
     private Timer messageTimer;
     public JFrame window;
-    public JLabel counterLabel, effectLabel, luckLabel, cpsLabel;
+    public JLabel counterLabel, effectLabel, luckLabel, cpsLabel, clickValueLabel;
     public JButton rollButton;
     private static final int MAX_CARDS = 9;
     public JPanel[] cardSlots = new JPanel[MAX_CARDS];
@@ -147,35 +147,46 @@ public class UI {
 
         // Counter panel
         JPanel counterPanel = new JPanel();
-        counterPanel.setBounds(50, 40, 200, 100);
+        counterPanel.setBounds(30, 40, 320, 150);
         counterPanel.setBackground(Color.white);
-        counterPanel.setLayout(new GridLayout(2, 1));
+        counterPanel.setLayout(new BoxLayout(counterPanel, BoxLayout.Y_AXIS));
         gamePanel.add(counterPanel);
 
         // Counter label
         counterLabel = new JLabel(player.getCoins() + " moedas");
         counterLabel.setForeground(Color.black);
         counterLabel.setFont(font1);
+        counterLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         counterPanel.add(counterLabel);
 
-        // Effect panel (textos e mensagens)
+        /* Effect panel (textos e mensagens)
         JPanel effectPanel = new JPanel();
         effectPanel.setLayout(new GridLayout(2, 1));
         effectPanel.setBackground(Color.white);
         counterPanel.add(effectPanel);
+         */
+
         // Effect label
         effectLabel = new JLabel("");
         effectLabel.setFont(font2);
         effectLabel.setForeground(Color.darkGray);
-        effectLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        effectLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        effectLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        counterPanel.add(effectLabel);
+
+        // Click value label
+        clickValueLabel = new JLabel("Moedas/clique: +0");
+        clickValueLabel.setForeground(Color.gray);
+        clickValueLabel.setFont(font2);
+        clickValueLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        counterPanel.add(clickValueLabel);
+
         // Coins per Second
-        cpsLabel = new JLabel("Moedas por segundo: 0");
+        cpsLabel = new JLabel("Moedas/segundo: 0");
         cpsLabel.setFont(font2);
         cpsLabel.setForeground(Color.gray);
-        cpsLabel.setHorizontalAlignment(SwingConstants.LEFT);
-
-        effectPanel.add(effectLabel);
-        effectPanel.add(cpsLabel);
+        cpsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        counterPanel.add(cpsLabel);
 
         // Luck label
         luckLabel = new JLabel("Sorte: " + player.getLuck() + "%");
@@ -214,7 +225,7 @@ public class UI {
 
         // Slots das cartas - estilo hotbar horizontal
         JPanel cardPanel = new JPanel();
-        cardPanel.setBounds(50, 480, 700, 100);                 // x=50, y=450, largura 700, altura 100
+        cardPanel.setBounds(30, 480, 740, 100);                 // x=50, y=480, largura 700, altura 100
         cardPanel.setLayout(new GridLayout(1, 9, 5, 0));    // 1 linha, 9 colunas, espaçamento horizontal 5px
         cardPanel.setBackground(Color.white);
         cardPanel.setBorder(BorderFactory.createTitledBorder("Cartas Ativas"));
@@ -256,13 +267,9 @@ public class UI {
         exitButton.setActionCommand("exit");
         exitButton.addActionListener(cHandler);
         titlePanel.add(exitButton);
-<<<<<<< HEAD
-        // Versão e copyright
-        JLabel versionLabel = new JLabel("Versão 0.0.9 © 2026 Digital Cake Studio", SwingConstants.CENTER);
-=======
 
-        JLabel versionLabel = new JLabel("Versão 0.0.12 © 2026 Digital Cake Studio", SwingConstants.CENTER);
->>>>>>> 0f0928bed22966f0dde21d24ba5d693acf041793
+        // Versão e copyright
+        JLabel versionLabel = new JLabel("Versão 0.0.1 © 2026 Digital Cake Studio", SwingConstants.CENTER);
         versionLabel.setBounds(245, 560, 300, 30);
         versionLabel.setFont(new Font("Cambria", Font.PLAIN, 16));
         versionLabel.setForeground(Color.gray);
@@ -317,7 +324,10 @@ public class UI {
 
     // Mostrar mensagens
     public void showMessage(String message, Color color) {
-        effectLabel.setText(message);
+        // Usa HTMl para poder usar line breaks
+        String htmlMessage = "<html><body style='width: 280px'>" + message + "</body></html>";
+
+        effectLabel.setText(htmlMessage);
         effectLabel.setForeground(color);
 
         // Reinicia o timer da exibição das mensagens

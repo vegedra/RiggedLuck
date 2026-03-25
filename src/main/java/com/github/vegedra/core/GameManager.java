@@ -64,7 +64,7 @@ public class GameManager {
 
     // Atualização de UI
     public void updateCounter()   { ui.counterLabel.setText(player.getCoins() + " moedas"); }
-    public void updateCPSLabel()  { ui.cpsLabel.setText("Moedas por segundo: " + computeTotalCPS()); }
+    public void updateCPSLabel()  { ui.cpsLabel.setText("Moedas/segundo: " + computeTotalCPS()); }
     public void updateLuckLabel() {
         ui.luckLabel.setText("Sorte: " + player.getLuck() + "%");
 
@@ -90,6 +90,12 @@ public class GameManager {
             ui.rollButton.setText("Sortear (" + rollCost + " moedas)");
         }
     }
+    public void updateClickValueDisplay() {
+        if (ui != null && ui.clickValueLabel != null) {
+            int total = computeTotalClickValue();
+            ui.clickValueLabel.setText("Moedas/clique: +" + total);
+        }
+    }
 
     // Getters
     public Card[] getActiveCards() { return activeCards; }
@@ -106,6 +112,7 @@ public class GameManager {
         // (precisamos de um contador de cliques no segundo atual)
         timerManager.incrementClicksThisSecond(); // variável de instância a ser adicionada
         updateCounter();
+        updateClickValueDisplay();
         checkGameOver();
     }
 
@@ -137,10 +144,7 @@ public class GameManager {
 
         // Atualiza a UI
         cardUI.updateCardUI(emptyIndex, activeCards[emptyIndex]);
-        updateCounter();
-        updateCPSLabel();
-        updateLuckLabel();
-        updateRollCost();
+        refreshUI();
         ui.showMessage("Nova carta: " + newCard.name, Color.GREEN);
     }
 
@@ -192,9 +196,7 @@ public class GameManager {
                 }
                 player.changeCoins(cardCount * 500); // 500 por carta destruída
                 player.setLuck(50);                  // reseta sorte para 50%
-                updateCounter();
-                updateLuckLabel();
-                updateCPSLabel();
+                refreshUI();
                 ui.showMessage("A Morte! +" + (cardCount * 500) + " moedas. Sorte resetada.", Color.RED);
                 break;
 
@@ -275,10 +277,7 @@ public class GameManager {
 
         // Atualiza UI
         cardUI.updateCardUI(index, activeCards[index]);
-        updateCounter();
-        updateCPSLabel();
-        updateLuckLabel();
-        updateRollCost();
+        refreshUI();
 
         ui.showMessage("Carta descartada (-" + discardCost + " moedas)", Color.GREEN);
         Sound.DISCARD.play();
@@ -320,6 +319,15 @@ public class GameManager {
         int minutes = (totalSeconds % 3600) / 60;
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+    }
+
+    // Atualiza toda a UI
+    private void refreshUI() {
+        updateCounter();
+        updateClickValueDisplay();
+        updateCPSLabel();
+        updateLuckLabel();
+        updateRollCost();
     }
 
     // Game Over
@@ -366,10 +374,7 @@ public class GameManager {
         firstTimePlaying   = false;
 
         // Atualiza UI
-        updateCounter();
-        updateCPSLabel();
-        updateLuckLabel();
-        updateRollCost();
+        refreshUI();
     }
 
     // Fechar tudo

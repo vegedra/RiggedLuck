@@ -140,7 +140,7 @@
       "luck_per_click": 0,
       "coins_per_second": 0,
       "luck_per_second": 0,
-      "active": true,
+      "active": false,
       "active_effect": "SECOND_CHANCE"
     },
     {
