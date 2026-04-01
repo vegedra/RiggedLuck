@@ -15,6 +15,7 @@ import com.github.vegedra.audio.Sound;
 import com.github.vegedra.cards.Card;
 import com.github.vegedra.cards.CardGenerator;
 import com.github.vegedra.cards.CardManager;
+import com.github.vegedra.collectors.CobradorManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -34,6 +35,7 @@ public class GameManager {
     private CardGenerator generator = new CardGenerator();
     private VisibilityManager vm;
     private ActionListener cHandler;
+    private CobradorManager cobradorManager;
 
     public boolean firstTimePlaying = false;
     public int currentGameMode;
@@ -57,10 +59,12 @@ public class GameManager {
         //this.timerManager = new TimerManager(player, cardManager, this);    // Substitui depois
         this.cardUI = new CardUI(ui, this, cHandler);
         this.timerManager = new TimerManager(player, this);
+        this.cobradorManager = new CobradorManager(ui, player, this, cHandler);
     }
 
     public void setVisibilityManager(VisibilityManager vm) { this.vm = vm; }
     public TimerManager getTimerManager() { return timerManager; }
+    public CobradorManager getCobradorManager()   { return cobradorManager; }
 
     // Atualização de UI
     public void updateCounter()   { ui.counterLabel.setText(player.getCoins() + " moedas"); }
@@ -250,6 +254,9 @@ public class GameManager {
         // O Mago: +2/clique por carta CLICK
         if (hasCard("o_mago")) base += countCardsOfType(Card.CardType.CLICK) * 2;
         if (hasCard("o_mundo") && countActiveCards() == 9) base *= 2;
+        if (cobradorManager != null) {
+            base = Math.max(1, base - cobradorManager.getTotalClickPenalty());
+        }
         return base;
     }
     public boolean hasCard(String id) {
@@ -369,9 +376,11 @@ public class GameManager {
 
         // Reseta variaveis
         timerManager.resetCounters();
-        rollsMade          = 0;
-        rollCost           = 20;
-        firstTimePlaying   = false;
+        rollsMade = 0;
+        rollCost = 20;
+        firstTimePlaying = false;
+
+        if (cobradorManager != null) cobradorManager.reset();
 
         // Atualiza UI
         refreshUI();

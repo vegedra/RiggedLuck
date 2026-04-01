@@ -67,10 +67,16 @@ public class TimerManager {
             updateLuck(clicksThisSecond);
             clicksThisSecond = 0;
 
+            // Tick dos cobradores
+            if (gm.getCobradorManager() != null) {
+                gm.getCobradorManager().tick(secondsElapsed);
+            }
+
             gm.updateRollCost();
             gm.updateCounter();
             gm.updateCPSLabel();
             gm.updateLuckLabel();
+            gm.updateClickValueDisplay();
             // TODO: checkCollectorSpawn();
 
             // Dobra moedas passivas a cada 60s

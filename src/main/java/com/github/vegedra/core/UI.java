@@ -30,7 +30,7 @@ public class UI {
     private static final int MAX_CARDS = 9;
     public JPanel[] cardSlots = new JPanel[MAX_CARDS];
 
-    public JPanel titlePanel, gamePanel, pausePanel;
+    public JPanel titlePanel, gamePanel, pausePanel, cobradorPanel;
     private Font font1, font2, font3, buttonFont;
     private CardLayout cardLayout;
     private JPanel mainPanel;

@@ -55,6 +55,9 @@ public class Main {
         // Cria a tela e interface
         ui.createUI(cHandler);
 
+        // Inicia os cobradores e sua UI
+        gameManager.getCobradorManager().initUI();
+
         // Carrega a tela inicial
         vm.showTitleScreen();
     }
@@ -135,6 +138,19 @@ public class Main {
                         int index = Integer.parseInt(action.split("_")[1]);
                         gameManager.handleDiscard(index);
                     }
+
+                    // Pagar cobrador
+                    if (action.startsWith("pay_cobrador_")) {
+                        int index = Integer.parseInt(action.split("_")[2]);
+                        gameManager.getCobradorManager().handlePay(index);
+                    }
+
+                    // Atacar cobrador
+                    if (action.startsWith("attack_cobrador_")) {
+                        int index = Integer.parseInt(action.split("_")[2]);
+                        gameManager.getCobradorManager().handleAttack(index);
+                    }
+                    break;
             }
         }
     }
