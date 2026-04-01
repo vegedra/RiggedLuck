@@ -24,9 +24,14 @@ public class CobradorManager {
 
     // Constantes
     private static final int MAX_COBRADORES = 5;
-    private static final int SPAWN_INTERVAL_SEC = 15;   // Verifica spawn a cada 15 s
-    private static final int SPAWN_CHANCE_BASE = 20;    // 20% base de chance de spawn
-    private static final int COINS_TRIGGER = 100;  // Mínimo de moedas para ativar sistema
+    private static final int SPAWN_INTERVAL_SEC = 5;     // Verifica spawn a cada 15s
+    private static final int SPAWN_CHANCE_BASE = 100;   // 25% base de chance de spawn
+    private static final int COINS_TRIGGER = 10;       // Mínimo de moedas para ativar sistema (100)
+
+    // Dimensões do card dos cobradores
+    private static final int CARD_W = 200;
+    private static final int CARD_H = 280;
+    private static final int STACK_OFFSET = 5;          // deslocamento px entre cada carta no deck
 
     // Referências
     private final UI ui;
@@ -36,13 +41,12 @@ public class CobradorManager {
 
     // Estados
     private final Cobrador[] cobradores = new Cobrador[MAX_COBRADORES];
-    private final JPanel[] cobradorSlots = new JPanel[MAX_COBRADORES];
 
     private boolean spawnEnabled = false;
     private int ticksUntilSpawnCheck = SPAWN_INTERVAL_SEC;
 
     // Painel principal
-    private JPanel cobradorPanel;
+    private JPanel deckContainer;
 
     // Construtor
     public CobradorManager(UI ui, Player player, GameManager gm, ActionListener cHandler) {
@@ -54,40 +58,27 @@ public class CobradorManager {
 
     // Inicializa o painel dos cobradores
     public void initUI() {
-        cobradorPanel = new JPanel();
-        cobradorPanel.setBounds(440, 130, 315, 335);
-        cobradorPanel.setLayout(new BoxLayout(cobradorPanel, BoxLayout.Y_AXIS));
-        cobradorPanel.setBackground(Color.WHITE);
-        cobradorPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(180, 0, 0), 1),
-                "⚠ Cobradores"
-        ));
-        cobradorPanel.setVisible(false); // Aparece só quando há cobradores ativos
+        // Área total que acomoda o deck + sombra de empilhamento
+        int containerW = CARD_W + STACK_OFFSET * (MAX_COBRADORES - 1);
+        int containerH = CARD_H + STACK_OFFSET * (MAX_COBRADORES - 1);
 
-        // Slots para os stacks de cobradores
-        for (int i = 0; i < MAX_COBRADORES; i++) {
-            cobradorSlots[i] = new JPanel();
-            cobradorSlots[i].setMaximumSize(new Dimension(305, 58));
-            cobradorSlots[i].setMinimumSize(new Dimension(305, 58));
-            cobradorSlots[i].setPreferredSize(new Dimension(305, 58));
-            cobradorSlots[i].setVisible(false);
-            cobradorPanel.add(cobradorSlots[i]);
-            cobradorPanel.add(Box.createRigidArea(new Dimension(0, 2)));
-        }
+        deckContainer = new JPanel(null); // null layout para posicionamento absoluto das cartas
+        deckContainer.setBounds(500, 165, containerW, containerH);  // TODO: MEXE AQUI
+        deckContainer.setOpaque(false);
+        deckContainer.setVisible(false);
 
-        // Adiciona à UI
-        ui.gamePanel.add(cobradorPanel);
+        ui.gamePanel.add(deckContainer);
         ui.gamePanel.revalidate();
     }
 
     // Processa a drenagem, debuffs e spawn
     public void tick(int secondsElapsed) {
-        /*
+
         System.out.println("[CM] tick s=" + secondsElapsed
                 + " coins=" + player.getCoins()
                 + " enabled=" + spawnEnabled
                 + " countdown=" + ticksUntilSpawnCheck);
-        */
+
         // Ativa o sistema de spawn quando o jogador acumula moedas suficientes
         if (!spawnEnabled && player.getCoins() >= COINS_TRIGGER) {
             spawnEnabled = true;
@@ -110,6 +101,7 @@ public class CobradorManager {
             trySpawn(secondsElapsed);
         }
 
+        // Atualiza UI
         gm.updateCounter();
         gm.updateLuckLabel();
     }
@@ -121,7 +113,7 @@ public class CobradorManager {
 
         // Chance de spawn cresce com o tempo de jogo (máx 80%)
         int minutes = secondsElapsed / 60;
-        int chance  = Math.min(80, SPAWN_CHANCE_BASE + minutes * 3);
+        int chance = Math.min(80, SPAWN_CHANCE_BASE + minutes * 3);
 
         if ((int)(Math.random() * 100) < chance) {
             spawn(secondsElapsed);
@@ -137,10 +129,8 @@ public class CobradorManager {
         cobradores[emptyIndex] = novo;
         System.out.println("[CM] Spawnou: " + novo.getName() + " no slot " + emptyIndex);
 
-        updateSlotUI(emptyIndex);
+        updateStackUI();
         System.out.println("[CM] updateSlotUI ok");
-        refreshPanelVisibility();
-        System.out.println("[CM] panel visible=" + cobradorPanel.isVisible());
 
         ui.showMessage("Um <b>" + novo.getName() + "</b> aparece!", Color.RED);
         // Sound.COBRADOR_SPAWN.play(); // TODO: adicionar SFX
@@ -158,8 +148,8 @@ public class CobradorManager {
             return;
         }
 
-        boolean paid = c.receberPagamento(cost);
-        if (paid) {
+        //boolean paid = c.receberPagamento(cost);
+        if (c.receberPagamento(cost)) {
             player.changeCoins(-cost);
             String nome = c.getName();
             removeCobrador(index);
@@ -182,9 +172,9 @@ public class CobradorManager {
             String nome = c.getName();
             removeCobrador(index);
             ui.showMessage(nome + " foi expulso! (-" + luckPenalty + "% sorte)", Color.ORANGE);
-        // Cobrador Tenaz sobreviveu ao primeiro ataque
+            // Cobrador Tenaz sobreviveu ao primeiro ataque
         } else {
-            updateSlotUI(index);
+            updateStackUI();
             ui.showMessage(c.getName() + " resistiu! (-" + luckPenalty + "% sorte)", Color.YELLOW);
         }
 
@@ -193,116 +183,168 @@ public class CobradorManager {
     }
 
 
-    // UI dos slots
-    private void updateSlotUI(int index) {
-        Cobrador c = cobradores[index];
-        JPanel slot = cobradorSlots[index];
-        slot.removeAll();
+    // UI dos cards dos cobradores
+    /**
+     * Reconstrói o deck inteiro.
+     * A carta da frente (slot ativo de menor índice) fica por cima com UI completa.
+     * As cartas atrás são deslocadas e mostram apenas o verso do card.
+     */
+    private void updateStackUI() {
+        deckContainer.removeAll();
 
-        if (c == null) {
-            slot.setVisible(false);
+        // Coleta apenas slots ocupados
+        int[] activeIndexes = new int[MAX_COBRADORES];
+        int activeCount = 0;
+        for (int i = 0; i < MAX_COBRADORES; i++) {
+            if (cobradores[i] != null && cobradores[i].isActive()) {
+                activeIndexes[activeCount++] = i;
+            }
+        }
+
+        if (activeCount == 0) {
+            deckContainer.setVisible(false);
+            deckContainer.revalidate();
+            deckContainer.repaint();
+            ui.gamePanel.repaint();
             return;
         }
 
-        slot.setLayout(new BorderLayout(4, 0));
-        slot.setBackground(new Color(255, 238, 238));
-        slot.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 3, 0, 0, new Color(200, 50, 50)),
-                BorderFactory.createEmptyBorder(4, 6, 4, 4)
-        ));
+        // Renderiza de trás para frente: as cartas de trás ficam no fundo
+        // A carta da frente (activeIndexes[0]) é a última adicionada = fica no topo
+        for (int layer = activeCount - 1; layer >= 0; layer--) {
+            int cobradorIndex = activeIndexes[layer];
+            Cobrador c        = cobradores[cobradorIndex];
 
-        // Ícone GIF
-        JLabel iconLabel = new JLabel();
-        iconLabel.setPreferredSize(new Dimension(38, 38));
-        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            // Offset: quanto mais para trás, mais deslocado para baixo e para a direita
+            int offsetX = layer * STACK_OFFSET;
+            int offsetY = layer * STACK_OFFSET;
+
+            JPanel card = buildCardPanel(c, cobradorIndex, layer == 0);
+            card.setBounds(offsetX, offsetY, CARD_W, CARD_H);
+            deckContainer.add(card);
+        }
+
+        deckContainer.setVisible(true);
+        deckContainer.revalidate();
+        deckContainer.repaint();
+        ui.gamePanel.repaint();
+    }
+
+    // Constrói o painel visual de uma carta de cobrador
+    private JPanel buildCardPanel(Cobrador c, int cobradorIndex, boolean isFront) {
+        JPanel card = new JPanel(null);
+        card.setBackground(new Color(255, 255, 255));
+        card.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0), 2));
+
+        if (!isFront) {
+            // Verso da carta (cartas empilhadas atrás)
+            JLabel back = new JLabel("☽", SwingConstants.CENTER);
+            back.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 36));
+            back.setForeground(new Color(140, 140, 140));
+            back.setBounds(0, 0, CARD_W, CARD_H);
+            card.add(back);
+            return card;
+        }
+
+        // Frente da carta (carta interativa da frente)
+        // Nome no topo
+        JLabel nameLabel = new JLabel(c.getName(), SwingConstants.CENTER);
+        nameLabel.setFont(new Font("Cambria", Font.BOLD, 11));
+        nameLabel.setForeground(new Color(0, 0, 0));
+        nameLabel.setBounds(4, 6, CARD_W - 8, 16);
+        card.add(nameLabel);
+
+        // Separador decorativo
+        JSeparator sep = new JSeparator();
+        sep.setForeground(new Color(255, 255, 255));
+        sep.setBounds(8, 25, CARD_W - 16, 1);
+        card.add(sep);
+
+        // Sprite / ícone central
+        JLabel spriteLabel = new JLabel("", SwingConstants.CENTER);
+        spriteLabel.setBounds(0, 30, CARD_W, 80);
         try {
             java.net.URL imgUrl = getClass().getResource(c.getIconPath());
             if (imgUrl != null) {
-                ImageIcon icon = new ImageIcon(imgUrl);
-                Image scaled = icon.getImage().getScaledInstance(36, 36, Image.SCALE_DEFAULT);
-                iconLabel.setIcon(new ImageIcon(scaled));
+                ImageIcon icon   = new ImageIcon(imgUrl);
+                Image     scaled = icon.getImage().getScaledInstance(64, 72, Image.SCALE_DEFAULT);
+                spriteLabel.setIcon(new ImageIcon(scaled));
             } else {
-                throw new Exception("Asset não encontrado: " + c.getIconPath());
+                spriteLabel.setText("👻");
+                spriteLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 44));
             }
         } catch (Exception e) {
-            iconLabel.setText("👻");
-            iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 22));
+            spriteLabel.setText("👻");
+            spriteLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 44));
         }
-        slot.add(iconLabel, BorderLayout.WEST);
+        card.add(spriteLabel);
 
-        // Info central
-        String hpBar = "";
+        // Drenagem e HP (se Tenaz)
+        String hpStr = "";
         if (c instanceof CobradorTenaz) {
-            CobradorTenaz tenaz = (CobradorTenaz) c;
-            hpBar = " [" + tenaz.getRemainingHP() + " HP]";
+            hpStr = "  [" + ((CobradorTenaz) c).getRemainingHP() + " HP]";
         }
-        String debuffTag = c.getDebuff() != Cobrador.Debuff.NONE
-                ? "<br><font color='#CC0000' size='1'>✦ " + getDebuffLabel(c.getDebuff()) + "</font>"
-                : "";
-
-        JLabel infoLabel = new JLabel(
-                "<html><b>" + c.getName() + "</b>" +
-                        "<br><font color='gray' size='1'>-" + c.getDrainPerSecond() + " moedas/s" + hpBar + "</font>" +
-                        debuffTag + "</html>"
+        JLabel statsLabel = new JLabel(
+                "<html><center><font color='#FF9999'>-" + c.getDrainPerSecond()
+                        + " moedas/s" + hpStr + "</font></center></html>",
+                SwingConstants.CENTER
         );
-        infoLabel.setFont(new Font("Cambria", Font.PLAIN, 10));
-        slot.add(infoLabel, BorderLayout.CENTER);
+        statsLabel.setFont(new Font("Cambria", Font.PLAIN, 10));
+        statsLabel.setBounds(4, 112, CARD_W - 8, 16);
+        card.add(statsLabel);
 
-        // Botões (direita)
-        JPanel actionPanel = new JPanel(new GridLayout(2, 1, 0, 2));
-        actionPanel.setBackground(new Color(255, 238, 238));
-        actionPanel.setPreferredSize(new Dimension(88, 50));
+        // Debuff (se houver)
+        if (c.getDebuff() != Cobrador.Debuff.NONE) {
+            JLabel debuffLabel = new JLabel(
+                    "<html><center><font color='#FF6666'>✦ " + getDebuffLabel(c.getDebuff())
+                            + "</font></center></html>",
+                    SwingConstants.CENTER
+            );
+            debuffLabel.setFont(new Font("Cambria", Font.PLAIN, 9));
+            debuffLabel.setBounds(4, 129, CARD_W - 8, 14);
+            card.add(debuffLabel);
+        }
 
+        // Botão Pagar
         JButton payBtn = new JButton("Pagar (" + c.getPaymentCost() + ")");
         payBtn.setFont(new Font("Cambria", Font.PLAIN, 9));
         payBtn.setFocusPainted(false);
-        payBtn.setBackground(new Color(180, 255, 180));
-        payBtn.setActionCommand("pay_cobrador_" + index);
+        payBtn.setBackground(new Color(60, 140, 60));
+        payBtn.setForeground(Color.WHITE);
+        payBtn.setBorderPainted(false);
+        payBtn.setBounds(6, 148, CARD_W - 12, 22);
+        payBtn.setActionCommand("pay_cobrador_" + cobradorIndex);
         payBtn.addActionListener(cHandler);
+        card.add(payBtn);
 
+        // Botão Atacar
         JButton attackBtn = new JButton("Atacar");
         attackBtn.setFont(new Font("Cambria", Font.BOLD, 9));
         attackBtn.setFocusPainted(false);
-        attackBtn.setBackground(new Color(255, 160, 160));
-        attackBtn.setActionCommand("attack_cobrador_" + index);
+        attackBtn.setBackground(new Color(160, 40, 40));
+        attackBtn.setForeground(Color.WHITE);
+        attackBtn.setBorderPainted(false);
+        attackBtn.setBounds(6, 173, CARD_W - 12, 22);
+        attackBtn.setActionCommand("attack_cobrador_" + cobradorIndex);
         attackBtn.addActionListener(cHandler);
+        card.add(attackBtn);
 
-        actionPanel.add(payBtn);
-        actionPanel.add(attackBtn);
-        slot.add(actionPanel, BorderLayout.EAST);
+        // Tooltip
+        card.setToolTipText("<html><b>" + c.getName() + "</b><br>"
+                + c.getDescription() + "<br><br>"
+                + "Drenagem: -" + c.getDrainPerSecond() + " moedas/s<br>"
+                + "Custo pagar: " + c.getPaymentCost() + " moedas<br>"
+                + "Penalidade ataque: -" + c.getLuckPenaltyOnAttack() + "% sorte<br>"
+                + "Debuff: " + getDebuffLabel(c.getDebuff()) + "</html>");
 
-        // Tooltip completo no painel
-        slot.setToolTipText("<html><b>" + c.getName() + "</b><br>" +
-                c.getDescription() + "<br><br>" +
-                "Drenagem: -" + c.getDrainPerSecond() + " moedas/s<br>" +
-                "Custo pagar: "  + c.getPaymentCost()         + " moedas<br>" +
-                "Penalidade ataque: -" + c.getLuckPenaltyOnAttack() + "% sorte<br>" +
-                "Debuff: " + getDebuffLabel(c.getDebuff()) + "</html>");
-
-        slot.setVisible(true);
-        slot.revalidate();
-        slot.repaint();
+        return card;
     }
 
     // Utilitários
     private void removeCobrador(int index) {
         cobradores[index] = null;
-        cobradorSlots[index].setVisible(false);
-        cobradorSlots[index].removeAll();
-        cobradorSlots[index].revalidate();
-        cobradorSlots[index].repaint();
-        refreshPanelVisibility();
-        // Atualiza clickValueLabel para refletir fim do debuff CLICK_WEAKEN
+        updateStackUI();
         gm.updateClickValueDisplay();
-    }
-
-    private void refreshPanelVisibility() {
-        if (cobradorPanel == null) return;
-        boolean hasAny = countActive() > 0;
-        cobradorPanel.setVisible(hasAny);
-        cobradorPanel.revalidate();
-        cobradorPanel.repaint();
-        ui.gamePanel.repaint();
     }
 
     private int findEmptySlot() {
@@ -353,13 +395,15 @@ public class CobradorManager {
     public void reset() {
         for (int i = 0; i < MAX_COBRADORES; i++) {
             cobradores[i] = null;
-            if (cobradorSlots[i] != null) {
-                cobradorSlots[i].setVisible(false);
-                cobradorSlots[i].removeAll();
-            }
         }
-        spawnEnabled = false;
+        spawnEnabled         = false;
         ticksUntilSpawnCheck = SPAWN_INTERVAL_SEC;
-        refreshPanelVisibility();
+        if (deckContainer != null) {
+            deckContainer.removeAll();
+            deckContainer.setVisible(false);
+            deckContainer.revalidate();
+            deckContainer.repaint();
+        }
+        if (ui != null && ui.gamePanel != null) ui.gamePanel.repaint();
     }
 }
