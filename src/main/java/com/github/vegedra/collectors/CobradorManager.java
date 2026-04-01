@@ -82,6 +82,12 @@ public class CobradorManager {
 
     // Processa a drenagem, debuffs e spawn
     public void tick(int secondsElapsed) {
+        /*
+        System.out.println("[CM] tick s=" + secondsElapsed
+                + " coins=" + player.getCoins()
+                + " enabled=" + spawnEnabled
+                + " countdown=" + ticksUntilSpawnCheck);
+        */
         // Ativa o sistema de spawn quando o jogador acumula moedas suficientes
         if (!spawnEnabled && player.getCoins() >= COINS_TRIGGER) {
             spawnEnabled = true;
@@ -129,9 +135,12 @@ public class CobradorManager {
         // Cria o cobrador
         Cobrador novo = CobradorFactory.createRandom(secondsElapsed);
         cobradores[emptyIndex] = novo;
+        System.out.println("[CM] Spawnou: " + novo.getName() + " no slot " + emptyIndex);
 
         updateSlotUI(emptyIndex);
+        System.out.println("[CM] updateSlotUI ok");
         refreshPanelVisibility();
+        System.out.println("[CM] panel visible=" + cobradorPanel.isVisible());
 
         ui.showMessage("Um <b>" + novo.getName() + "</b> aparece!", Color.RED);
         // Sound.COBRADOR_SPAWN.play(); // TODO: adicionar SFX
@@ -186,8 +195,8 @@ public class CobradorManager {
 
     // UI dos slots
     private void updateSlotUI(int index) {
-        Cobrador c    = cobradores[index];
-        JPanel   slot = cobradorSlots[index];
+        Cobrador c = cobradores[index];
+        JPanel slot = cobradorSlots[index];
         slot.removeAll();
 
         if (c == null) {
@@ -207,11 +216,15 @@ public class CobradorManager {
         iconLabel.setPreferredSize(new Dimension(38, 38));
         iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
         try {
-            ImageIcon icon = new ImageIcon(getClass().getResource(c.getIconPath()));
-            Image scaled = icon.getImage().getScaledInstance(36, 36, Image.SCALE_DEFAULT);
-            iconLabel.setIcon(new ImageIcon(scaled));
+            java.net.URL imgUrl = getClass().getResource(c.getIconPath());
+            if (imgUrl != null) {
+                ImageIcon icon = new ImageIcon(imgUrl);
+                Image scaled = icon.getImage().getScaledInstance(36, 36, Image.SCALE_DEFAULT);
+                iconLabel.setIcon(new ImageIcon(scaled));
+            } else {
+                throw new Exception("Asset não encontrado: " + c.getIconPath());
+            }
         } catch (Exception e) {
-            // Fallback emoji se o gif não for encontrado
             iconLabel.setText("👻");
             iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 22));
         }
@@ -289,6 +302,7 @@ public class CobradorManager {
         cobradorPanel.setVisible(hasAny);
         cobradorPanel.revalidate();
         cobradorPanel.repaint();
+        ui.gamePanel.repaint();
     }
 
     private int findEmptySlot() {
