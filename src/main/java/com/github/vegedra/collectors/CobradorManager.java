@@ -24,14 +24,29 @@ public class CobradorManager {
 
     // Constantes
     private static final int MAX_COBRADORES = 5;
-    private static final int SPAWN_INTERVAL_SEC = 5;     // Verifica spawn a cada 15s
-    private static final int SPAWN_CHANCE_BASE = 100;   // 25% base de chance de spawn
-    private static final int COINS_TRIGGER = 10;       // Mínimo de moedas para ativar sistema (100)
+    private static final int SPAWN_INTERVAL_SEC = 15;      // Verifica spawn a cada 15s
+    private static final int SPAWN_CHANCE_BASE = 25;    // 25% base de chance de spawn
+    private static final int COINS_TRIGGER = 100;        // Mínimo de moedas para ativar sistema (100)
 
     // Dimensões do card dos cobradores
     private static final int CARD_W = 200;
     private static final int CARD_H = 280;
-    private static final int STACK_OFFSET = 5;          // deslocamento px entre cada carta no deck
+    private static final int STACK_OFFSET = 6;                      // deslocamento px entre cada carta no deck
+    // Layout interno
+    private static final int NAME_Y    = 5;
+    private static final int NAME_H    = 22;
+    private static final int SEP_Y     = NAME_Y + NAME_H + 2;       // 29
+    private static final int SPRITE_Y  = SEP_Y + 4;                 // 33
+    private static final int SPRITE_H  = 162;                       // ~80% do espaço útil
+    private static final int STATS_Y   = SPRITE_Y + SPRITE_H + 4;   // 199
+    private static final int STATS_H   = 16;
+    private static final int DEBUFF_Y  = STATS_Y + STATS_H + 2;     // 217
+    private static final int DEBUFF_H  = 14;
+    private static final int BTN_PAY_Y = 230;
+    private static final int BTN_ATK_Y = 254;
+    private static final int BTN_H     = 22;
+    private static final int BTN_X     = 8;
+    private static final int BTN_W     = CARD_W - BTN_X * 2;        // 184
 
     // Referências
     private final UI ui;
@@ -62,8 +77,8 @@ public class CobradorManager {
         int containerW = CARD_W + STACK_OFFSET * (MAX_COBRADORES - 1);
         int containerH = CARD_H + STACK_OFFSET * (MAX_COBRADORES - 1);
 
-        deckContainer = new JPanel(null); // null layout para posicionamento absoluto das cartas
-        deckContainer.setBounds(500, 165, containerW, containerH);  // TODO: MEXE AQUI
+        deckContainer = new JPanel(null);
+        deckContainer.setBounds(500, 165, containerW, containerH);
         deckContainer.setOpaque(false);
         deckContainer.setVisible(false);
 
@@ -73,7 +88,7 @@ public class CobradorManager {
 
     // Processa a drenagem, debuffs e spawn
     public void tick(int secondsElapsed) {
-
+        // Debug
         System.out.println("[CM] tick s=" + secondsElapsed
                 + " coins=" + player.getCoins()
                 + " enabled=" + spawnEnabled
@@ -209,13 +224,11 @@ public class CobradorManager {
             return;
         }
 
-        // Renderiza de trás para frente: as cartas de trás ficam no fundo
-        // A carta da frente (activeIndexes[0]) é a última adicionada = fica no topo
-        for (int layer = activeCount - 1; layer >= 0; layer--) {
+        // Z-order em Swing (null layout)
+        for (int layer = 0; layer < activeCount; layer++) {
             int cobradorIndex = activeIndexes[layer];
             Cobrador c        = cobradores[cobradorIndex];
 
-            // Offset: quanto mais para trás, mais deslocado para baixo e para a direita
             int offsetX = layer * STACK_OFFSET;
             int offsetY = layer * STACK_OFFSET;
 
@@ -233,14 +246,14 @@ public class CobradorManager {
     // Constrói o painel visual de uma carta de cobrador
     private JPanel buildCardPanel(Cobrador c, int cobradorIndex, boolean isFront) {
         JPanel card = new JPanel(null);
-        card.setBackground(new Color(255, 255, 255));
-        card.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0), 2));
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
+        // Verso da carta (cartas empilhadas atrás)
         if (!isFront) {
-            // Verso da carta (cartas empilhadas atrás)
             JLabel back = new JLabel("☽", SwingConstants.CENTER);
-            back.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 36));
-            back.setForeground(new Color(140, 140, 140));
+            back.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 48));
+            back.setForeground(new Color(180, 180, 180));
             back.setBounds(0, 0, CARD_W, CARD_H);
             card.add(back);
             return card;
@@ -249,82 +262,82 @@ public class CobradorManager {
         // Frente da carta (carta interativa da frente)
         // Nome no topo
         JLabel nameLabel = new JLabel(c.getName(), SwingConstants.CENTER);
-        nameLabel.setFont(new Font("Cambria", Font.BOLD, 11));
-        nameLabel.setForeground(new Color(0, 0, 0));
-        nameLabel.setBounds(4, 6, CARD_W - 8, 16);
+        nameLabel.setFont(new Font("Cambria", Font.BOLD, 12));
+        nameLabel.setForeground(Color.BLACK);
+        nameLabel.setBounds(4, NAME_Y, CARD_W - 8, NAME_H);
         card.add(nameLabel);
 
-        // Separador decorativo
+        // Separador
         JSeparator sep = new JSeparator();
-        sep.setForeground(new Color(255, 255, 255));
-        sep.setBounds(8, 25, CARD_W - 16, 1);
+        sep.setForeground(new Color(180, 180, 180));
+        sep.setBounds(8, SEP_Y, CARD_W - 16, 2);
         card.add(sep);
 
         // Sprite / ícone central
         JLabel spriteLabel = new JLabel("", SwingConstants.CENTER);
-        spriteLabel.setBounds(0, 30, CARD_W, 80);
+        spriteLabel.setBounds(0, SPRITE_Y, CARD_W, SPRITE_H);
         try {
             java.net.URL imgUrl = getClass().getResource(c.getIconPath());
             if (imgUrl != null) {
-                ImageIcon icon   = new ImageIcon(imgUrl);
-                Image     scaled = icon.getImage().getScaledInstance(64, 72, Image.SCALE_DEFAULT);
+                ImageIcon icon = new ImageIcon(imgUrl);
+                Image scaled = icon.getImage().getScaledInstance(CARD_W - 20, SPRITE_H - 8, Image.SCALE_DEFAULT);
                 spriteLabel.setIcon(new ImageIcon(scaled));
             } else {
-                spriteLabel.setText("👻");
-                spriteLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 44));
+                spriteLabel.setText("👹");
+                spriteLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 80));
             }
         } catch (Exception e) {
-            spriteLabel.setText("👻");
-            spriteLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 44));
+            spriteLabel.setText("👹");
+            spriteLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 80));
         }
         card.add(spriteLabel);
 
-        // Drenagem e HP (se Tenaz)
-        String hpStr = "";
-        if (c instanceof CobradorTenaz) {
-            hpStr = "  [" + ((CobradorTenaz) c).getRemainingHP() + " HP]";
-        }
+        // Drenagem e HP (se do tipo tenaz)
+        String hpStr = (c instanceof CobradorTenaz)
+                ? "  [" + ((CobradorTenaz) c).getRemainingHP() + " HP]"
+                : "";
         JLabel statsLabel = new JLabel(
-                "<html><center><font color='#FF9999'>-" + c.getDrainPerSecond()
-                        + " moedas/s" + hpStr + "</font></center></html>",
+                "<html><center>-" + c.getDrainPerSecond() + " moedas/s" + hpStr + "</center></html>",
                 SwingConstants.CENTER
         );
-        statsLabel.setFont(new Font("Cambria", Font.PLAIN, 10));
-        statsLabel.setBounds(4, 112, CARD_W - 8, 16);
+        statsLabel.setFont(new Font("Cambria", Font.PLAIN, 11));
+        statsLabel.setForeground(new Color(180, 0, 0));
+        statsLabel.setBounds(4, STATS_Y, CARD_W - 8, STATS_H);
         card.add(statsLabel);
 
         // Debuff (se houver)
         if (c.getDebuff() != Cobrador.Debuff.NONE) {
             JLabel debuffLabel = new JLabel(
-                    "<html><center><font color='#FF6666'>✦ " + getDebuffLabel(c.getDebuff())
+                    "<html><center><font color='#FF2E2E'>" + getDebuffLabel(c.getDebuff())
                             + "</font></center></html>",
                     SwingConstants.CENTER
             );
-            debuffLabel.setFont(new Font("Cambria", Font.PLAIN, 9));
-            debuffLabel.setBounds(4, 129, CARD_W - 8, 14);
+            debuffLabel.setFont(new Font("Cambria", Font.PLAIN, 11));
+            debuffLabel.setForeground(new Color(160, 60, 0));
+            debuffLabel.setBounds(4, DEBUFF_Y-1, CARD_W - 8, DEBUFF_H);
             card.add(debuffLabel);
         }
 
         // Botão Pagar
-        JButton payBtn = new JButton("Pagar (" + c.getPaymentCost() + ")");
-        payBtn.setFont(new Font("Cambria", Font.PLAIN, 9));
+        JButton payBtn = new JButton("Pagar (" + c.getPaymentCost() + " moedas)");
+        payBtn.setFont(new Font("Cambria", Font.PLAIN, 11));
         payBtn.setFocusPainted(false);
         payBtn.setBackground(new Color(60, 140, 60));
         payBtn.setForeground(Color.WHITE);
         payBtn.setBorderPainted(false);
-        payBtn.setBounds(6, 148, CARD_W - 12, 22);
+        payBtn.setBounds(BTN_X, BTN_PAY_Y, BTN_W, BTN_H);
         payBtn.setActionCommand("pay_cobrador_" + cobradorIndex);
         payBtn.addActionListener(cHandler);
         card.add(payBtn);
 
         // Botão Atacar
         JButton attackBtn = new JButton("Atacar");
-        attackBtn.setFont(new Font("Cambria", Font.BOLD, 9));
+        attackBtn.setFont(new Font("Cambria", Font.BOLD, 11));
         attackBtn.setFocusPainted(false);
         attackBtn.setBackground(new Color(160, 40, 40));
         attackBtn.setForeground(Color.WHITE);
         attackBtn.setBorderPainted(false);
-        attackBtn.setBounds(6, 173, CARD_W - 12, 22);
+        attackBtn.setBounds(BTN_X, BTN_ATK_Y, BTN_W, BTN_H);
         attackBtn.setActionCommand("attack_cobrador_" + cobradorIndex);
         attackBtn.addActionListener(cHandler);
         card.add(attackBtn);
@@ -333,9 +346,9 @@ public class CobradorManager {
         card.setToolTipText("<html><b>" + c.getName() + "</b><br>"
                 + c.getDescription() + "<br><br>"
                 + "Drenagem: -" + c.getDrainPerSecond() + " moedas/s<br>"
-                + "Custo pagar: " + c.getPaymentCost() + " moedas<br>"
-                + "Penalidade ataque: -" + c.getLuckPenaltyOnAttack() + "% sorte<br>"
-                + "Debuff: " + getDebuffLabel(c.getDebuff()) + "</html>");
+                + "Custo para pagar: " + c.getPaymentCost() + " moedas<br>"
+                + "Penalidade ao atacar: -" + c.getLuckPenaltyOnAttack() + "% sorte<br>"
+                + "Efeito: " + getDebuffLabel(c.getDebuff()) + "</html>");
 
         return card;
     }
