@@ -28,6 +28,9 @@ public class CobradorBasico extends Cobrador {
                 "/images/enemies/cobrador_basico.gif",
                 Debuff.NONE
         );
+        this.luckOnPay = 5;             // Pagar ganha +5% sorte
+        this.coinRewardOnDefeat = 30;   // Derrotar ganha 30 moedas
+        this.rareCardChance = 10;       // 10% de chance de carta rara ao derrotar
     }
 
     @Override

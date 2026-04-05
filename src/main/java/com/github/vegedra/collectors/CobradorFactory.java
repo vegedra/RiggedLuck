@@ -12,6 +12,7 @@
 
 package com.github.vegedra.collectors;
 
+import com.github.vegedra.cards.Card;
 import com.github.vegedra.collectors.types.CobradorAgressor;
 import com.github.vegedra.collectors.types.CobradorAmaldicoado;
 import com.github.vegedra.collectors.types.CobradorBasico;
@@ -38,7 +39,7 @@ public class CobradorFactory {
      * Nos primeiros minutos só aparecem cobradores básicos; com o tempo,
      * tipos mais difíceis ganham peso crescente.
      */
-    public static Cobrador createRandom(int secondsElapsed) {
+    public static Cobrador createRandom(int secondsElapsed, Card[] activeCards) {
         int minutes = secondsElapsed / 60;
 
         // Pesos base -> ajustados progressivamente
@@ -50,12 +51,64 @@ public class CobradorFactory {
         int total = basicWeight + agressorWeight + tenazWeight + amaldicoWeight;
         int roll  = random.nextInt(total);
 
+        CobradorType type;
         if (roll < basicWeight)
-            return create(CobradorType.BASICO);
-        if (roll < basicWeight + agressorWeight)
-            return create(CobradorType.AGRESSOR);
-        if (roll < basicWeight + agressorWeight + tenazWeight)
-            return create(CobradorType.TENAZ);
-        return create(CobradorType.AMALDICOADO);
+            type = CobradorType.BASICO;
+        else if (roll < basicWeight + agressorWeight)
+            type = CobradorType.AGRESSOR;
+        else if (roll < basicWeight + agressorWeight + tenazWeight)
+            type = CobradorType.TENAZ;
+        else
+            type = CobradorType.AMALDICOADO;
+
+        Cobrador c = create(type);
+
+        // Define modo adaptativo com base na build do jogador
+        if (activeCards != null) {
+            Cobrador.AdaptiveMode mode = determineAdaptiveMode(activeCards);
+            c.setAdaptiveMode(mode);
+        }
+
+        return c;
+    }
+
+    /** Mantém compatibilidade com chamadas sem cartas. */
+    public static Cobrador createRandom(int secondsElapsed) {
+        return createRandom(secondsElapsed, null);
+    }
+
+    /**
+     * Analisa as cartas ativas e determina o modo adaptativo do cobrador.
+     * Requer pelo menos 2 cartas do mesmo tipo para ativar a adaptação.
+     * Tipos de carte ignorados: DEFENSE e SYNERGY (não geram adaptação direta).
+     */
+    private static Cobrador.AdaptiveMode determineAdaptiveMode(Card[] activeCards) {
+        int click   = 0;
+        int passive = 0;
+        int luck    = 0;
+        int risk    = 0;
+
+        for (Card c : activeCards) {
+            if (c == null) continue;
+            switch (c.type) {
+                case CLICK:   click++;   break;
+                case PASSIVE: passive++; break;
+                case LUCK:    luck++;    break;
+                case RISK:    risk++;    break;
+                default: break;
+            }
+        }
+
+        // Encontra o tipo dominante (mínimo 2 cartas para ativar)
+        int max = Math.max(Math.max(click, passive), Math.max(luck, risk));
+        if (max < 2) return Cobrador.AdaptiveMode.NONE;
+
+        // Em caso de empate, prioridade: Risco > Sorte > Passiva > Clique
+        if (risk    == max) return Cobrador.AdaptiveMode.GLASS_CANNON;
+        if (luck    == max) return Cobrador.AdaptiveMode.LUCK_DRAIN_ADAPTIVE;
+        if (passive == max) return Cobrador.AdaptiveMode.AMPLIFIED_DRAIN;
+        if (click   == max) return Cobrador.AdaptiveMode.CLICK_DRAIN;
+
+        return Cobrador.AdaptiveMode.NONE;
     }
 }

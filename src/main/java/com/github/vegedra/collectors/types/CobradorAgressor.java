@@ -28,6 +28,9 @@ public class CobradorAgressor extends Cobrador {
                 "/images/enemies/cobrador_agressor.gif",
                 Debuff.LUCK_DRAIN
         );
+        this.luckOnPay = 10;            // Pagar ganha +10% sorte
+        this.coinRewardOnDefeat = 60;   // Derrotar ganha 60 moedas
+        this.rareCardChance =  20;      // 20% de chance de carta rara ao derrotar
     }
 
     @Override

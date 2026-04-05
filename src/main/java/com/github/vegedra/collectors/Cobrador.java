@@ -24,6 +24,15 @@ public abstract class Cobrador {
         DOUBLE_DRAIN    // Drenagem de moedas em dobro após X segundos
     }
 
+    // Modo adaptativo: definido no spawn com base na build do jogador
+    public enum AdaptiveMode {
+        NONE,                // Sem adaptação — comportamento padrão
+        CLICK_DRAIN,         // Drena ouro por clique em vez de por segundo (build Clique)
+        AMPLIFIED_DRAIN,     // Drenagem por segundo dobrada (build Passiva)
+        LUCK_DRAIN_ADAPTIVE, // Drena sorte agressivamente a cada segundo (build Sorte)
+        GLASS_CANNON         // Drenagem dobrada, mas morre mais rápido (build Risco)
+    }
+
     // Atributos base — definidos por cada subclasse via super()
     protected final String id;
     protected final String name;
@@ -33,6 +42,14 @@ public abstract class Cobrador {
     protected final int luckPenaltyOnAttack;
     protected final String iconPath;    // Imagem
     protected final Debuff debuff;
+
+    // Recompensas ao enfrentar e pagar — definidas por cada subclasse
+    protected int luckOnPay         = 0;   // Sorte ganha ao pagar
+    protected int coinRewardOnDefeat = 0;  // Moedas ganhas ao derrotar no combate
+    protected int rareCardChance    = 0;   // % de chance de carta rara ao derrotar (0–100)
+
+    // Modo adaptativo — definido pelo CobradorFactory no spawn
+    private AdaptiveMode adaptiveMode = AdaptiveMode.NONE;
 
     // Estado de instância
     protected int secondsActive = 0;
@@ -63,11 +80,29 @@ public abstract class Cobrador {
     public Debuff getDebuff() { return debuff; }
     public boolean isActive() { return active; }
     public int getSecondsActive() { return secondsActive; }
-    // Incrementa contador de tempo ativo
-    public void tick() { secondsActive++; }
+    public void tick() { secondsActive++; }     // Incrementa contador de tempo ativo
+    public int getLuckOnPay() { return luckOnPay; }
+    public int getCoinRewardOnDefeat() { return coinRewardOnDefeat; }
+    public int getRareCardChance() { return rareCardChance; }
+    public AdaptiveMode getAdaptiveMode() { return adaptiveMode; }
+    public void setAdaptiveMode(AdaptiveMode mode) { this.adaptiveMode = mode; };
+
+    // Retorna a drenagem efetiva por segundo, considerando o modo adaptativo (usado pela UI)
+    public int getEffectiveDrainPerSecond() {
+        switch (adaptiveMode) {
+            case AMPLIFIED_DRAIN:
+            case GLASS_CANNON:  return drainPerSecond * 2;
+            case CLICK_DRAIN:   return 0; // não drena por segundo
+            default:            return drainPerSecond;
+        }
+    }
+
+    // Retorna true se este cobrador drena por clique em vez de por segundo
+    public boolean drainsPerClick() {
+        return adaptiveMode == AdaptiveMode.CLICK_DRAIN;
+    }
 
     // Contratos
-
     // Pagamento, retorna true se o valor bater, desativando o cobrador
     public abstract boolean receberPagamento(int moedasOferecidas);
     // Recebe ataque do jogador, retorna a penalidade e pode ou não desativar o cobrador

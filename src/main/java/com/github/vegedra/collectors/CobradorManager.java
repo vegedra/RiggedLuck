@@ -100,21 +100,33 @@ public class CobradorManager {
         }
         if (!spawnEnabled) return;
 
-        // Drenagem de moedas e debuffs passivos de cada cobrador ativo
+        // Drenagem e debuffs de cada cobrador ativo
         for (Cobrador c : cobradores) {
-            if (c != null && c.isActive()) {
-                player.changeCoins(-c.getDrainPerSecond());
-                c.tick();
-                // O Eremita: bloqueia debuffs que afetam sorte diretamente
-                if (c.getDebuff() == Cobrador.Debuff.LUCK_DRAIN && gm.hasCard("o_ermitao")) {
-                // sorte protegida
-                } else {
-                    c.aplicarDebuff(player);
+            if (c == null || !c.isActive()) continue;
+
+            // CLICK_DRAIN não drena por segundo — é descontado em cada clique
+            if (!c.drainsPerClick()) {
+                int drain = c.getDrainPerSecond();
+                if (c.getAdaptiveMode() == Cobrador.AdaptiveMode.AMPLIFIED_DRAIN ||
+                        c.getAdaptiveMode() == Cobrador.AdaptiveMode.GLASS_CANNON) {
+                    drain *= 2;
                 }
+                player.changeCoins(-drain);
+            }
+
+            c.tick();
+
+            // Debuffs de sorte: modo adaptativo LUCK_DRAIN_ADAPTIVE tem prioridade
+            if (c.getAdaptiveMode() == Cobrador.AdaptiveMode.LUCK_DRAIN_ADAPTIVE) {
+                if (!gm.hasCard("o_ermitao")) player.changeLuck(-3);
+            } else if (c.getDebuff() == Cobrador.Debuff.LUCK_DRAIN && gm.hasCard("o_ermitao")) {
+                // O Eremita bloqueia o debuff de sorte normal
+            } else {
+                c.aplicarDebuff(player);
             }
         }
 
-        // Contagem regressiva para verificação de spawn
+        // Contagem regressiva para o spawn
         ticksUntilSpawnCheck--;
         if (ticksUntilSpawnCheck <= 0) {
             // O Enforcado: cobradores demoram 20% mais para aparecer
@@ -125,7 +137,6 @@ public class CobradorManager {
             trySpawn(secondsElapsed);
         }
 
-        // Atualiza UI
         gm.updateCounter();
         gm.updateLuckLabel();
     }
@@ -150,7 +161,7 @@ public class CobradorManager {
         if (emptyIndex == -1) return;
 
         // Cria o cobrador
-        Cobrador novo = CobradorFactory.createRandom(secondsElapsed);
+        Cobrador novo = CobradorFactory.createRandom(secondsElapsed, gm.getActiveCards());
         cobradores[emptyIndex] = novo;
         System.out.println("[CM] Spawnou: " + novo.getName() + " no slot " + emptyIndex);
 
@@ -176,12 +187,18 @@ public class CobradorManager {
         }
 
         //boolean paid = c.receberPagamento(cost);
-        if (c.receberPagamento(cost)) {
+        if (c.receberPagamento(baseCost)) {
             player.changeCoins(-cost);
+
+            // Pagar ganha Sorte
+            int luckGain = c.getLuckOnPay();
+            player.changeLuck(luckGain);
+
             String nome = c.getName();
             removeCobrador(index);
             gm.updateCounter();
-            ui.showMessage(nome + " foi pago e foi embora.", Color.GREEN);
+            gm.updateLuckLabel();
+            ui.showMessage(nome + " foi pago e foi embora. (+" + luckGain + "% sorte)", Color.GREEN);
         }
     }
 
@@ -191,25 +208,54 @@ public class CobradorManager {
         if (c == null || !c.isActive()) return;
 
         int luckPenalty = c.receberAtaque();
-        // O Eremita: cobradores não afetam sorte diretamente
+
         if (!gm.hasCard("o_ermitao")) {
             player.changeLuck(-luckPenalty);
             gm.updateLuckLabel();
         }
 
-        // Cobrador foi derrotado
         if (!c.isActive()) {
-            String nome = c.getName();
+            // Cobrador derrotado
+            int reward = c.getCoinRewardOnDefeat();
+            player.changeCoins(reward);
+            gm.updateCounter();
+
+            String nome    = c.getName();
             removeCobrador(index);
-            ui.showMessage(nome + " foi expulso! (-" + luckPenalty + "% sorte)", Color.ORANGE);
-            // Cobrador Tenaz sobreviveu ao primeiro ataque
+
+            boolean gotCard = tryGrantFightCard(c);
+            String cardMsg  = gotCard ? " Uma carta foi concedida!" : "";
+            String luckMsg  = gm.hasCard("o_ermitao") ? "" : " (-" + luckPenalty + "% sorte)";
+
+            ui.showMessage(nome + " expulso! (+" + reward + " moedas)" + luckMsg + cardMsg, Color.ORANGE);
         } else {
+            // Cobrador resistiu (ex: Tenaz no primeiro ataque)
             updateStackUI();
-            ui.showMessage(c.getName() + " resistiu! (-" + luckPenalty + "% sorte)", Color.YELLOW);
+            String luckMsg = gm.hasCard("o_ermitao") ? "" : " (-" + luckPenalty + "% sorte)";
+            ui.showMessage(c.getName() + " resistiu!" + luckMsg, Color.YELLOW);
         }
 
-        // Verifica game over
         gm.checkGameOver();
+    }
+
+    // Tenta conceder carta de recompensa ao derrotar um cobrador
+    private boolean tryGrantFightCard(Cobrador c) {
+        int roll = (int)(Math.random() * 100);
+        if (roll < c.getRareCardChance()) {
+            return gm.grantFightRewardCard();
+        }
+        return false;
+    }
+
+    // Retorna o total de moedas a drenar por clique (AdaptiveMode.CLICK_DRAIN)
+    public int getClickDrainPerHit() {
+        int drain = 0;
+        for (Cobrador c : cobradores) {
+            if (c != null && c.isActive() && c.drainsPerClick()) {
+                drain += c.getDrainPerSecond();
+            }
+        }
+        return drain;
     }
 
 
@@ -276,7 +322,9 @@ public class CobradorManager {
 
         // Frente da carta (carta interativa da frente)
         // Nome no topo
-        JLabel nameLabel = new JLabel(c.getName(), SwingConstants.CENTER);
+        // Nome + badge do modo adaptativo
+        String adaptiveBadge = getAdaptiveBadge(c.getAdaptiveMode());
+        JLabel nameLabel = new JLabel(c.getName() + adaptiveBadge, SwingConstants.CENTER);
         nameLabel.setFont(new Font("Cambria", Font.BOLD, 12));
         nameLabel.setForeground(Color.BLACK);
         nameLabel.setBounds(4, NAME_Y, CARD_W - 8, NAME_H);
@@ -307,12 +355,24 @@ public class CobradorManager {
         }
         card.add(spriteLabel);
 
-        // Drenagem e HP (se do tipo tenaz)
+        // Drenagem efetiva
+        String drainStr;
+        switch (c.getAdaptiveMode()) {
+            case CLICK_DRAIN:
+                drainStr = "-" + c.getDrainPerSecond() + " moedas/clique";
+                break;
+            case AMPLIFIED_DRAIN:
+            case GLASS_CANNON:
+                drainStr = "-" + (c.getDrainPerSecond() * 2) + " moedas/s";
+                break;
+            default:
+                drainStr = "-" + c.getDrainPerSecond() + " moedas/s";
+        }
         String hpStr = (c instanceof CobradorTenaz)
                 ? "  [" + ((CobradorTenaz) c).getRemainingHP() + " HP]"
                 : "";
         JLabel statsLabel = new JLabel(
-                "<html><center>-" + c.getDrainPerSecond() + " moedas/s" + hpStr + "</center></html>",
+                "<html><center>" + drainStr + hpStr + "</center></html>",
                 SwingConstants.CENTER
         );
         statsLabel.setFont(new Font("Cambria", Font.PLAIN, 11));
@@ -321,22 +381,25 @@ public class CobradorManager {
         card.add(statsLabel);
 
         // Debuff (se houver)
-        if (c.getDebuff() != Cobrador.Debuff.NONE) {
+        // Debuff / modo adaptativo
+        String debuffText = getDebuffDisplayText(c);
+        if (!debuffText.isEmpty()) {
             JLabel debuffLabel = new JLabel(
-                    "<html><center><font color='#FF2E2E'>" + getDebuffLabel(c.getDebuff())
-                            + "</font></center></html>",
+                    "<html><center><font color='#FF2E2E'>" + debuffText + "</font></center></html>",
                     SwingConstants.CENTER
             );
             debuffLabel.setFont(new Font("Cambria", Font.PLAIN, 11));
-            debuffLabel.setForeground(new Color(160, 60, 0));
-            debuffLabel.setBounds(4, DEBUFF_Y-1, CARD_W - 8, DEBUFF_H);
+            debuffLabel.setBounds(4, DEBUFF_Y - 1, CARD_W - 8, DEBUFF_H);
             card.add(debuffLabel);
         }
 
-        // Botão Pagar
+        // Botão Pagar — custo + sorte a ganhar
         int displayCost = gm.hasCard("a_imperatriz") ? (int)(c.getPaymentCost() * 0.7f) : c.getPaymentCost();
-        JButton payBtn = new JButton("Pagar (" + displayCost + " moedas)");
-        payBtn.setFont(new Font("Cambria", Font.PLAIN, 11));
+        JButton payBtn = new JButton(
+                "<html><center>Pagar (" + displayCost + " moedas)"
+                        + "<br><font color='#00CC00'>+" + c.getLuckOnPay() + "% sorte</font></center></html>"
+        );
+        payBtn.setFont(new Font("Cambria", Font.PLAIN, 10));
         payBtn.setFocusPainted(false);
         payBtn.setBackground(new Color(60, 140, 60));
         payBtn.setForeground(Color.WHITE);
@@ -346,8 +409,11 @@ public class CobradorManager {
         payBtn.addActionListener(cHandler);
         card.add(payBtn);
 
-        // Botão Atacar
-        JButton attackBtn = new JButton("Atacar");
+        // Botão Atacar — mostra recompensa ao vencer
+        JButton attackBtn = new JButton(
+                "<html><center>Atacar"
+                        + " <font size='1'>(+" + c.getCoinRewardOnDefeat() + "m)</font></center></html>"
+        );
         attackBtn.setFont(new Font("Cambria", Font.BOLD, 11));
         attackBtn.setFocusPainted(false);
         attackBtn.setBackground(new Color(160, 40, 40));
@@ -358,13 +424,18 @@ public class CobradorManager {
         attackBtn.addActionListener(cHandler);
         card.add(attackBtn);
 
-        // Tooltip
+        // Tooltip completo
+        String adaptiveDesc = c.getAdaptiveMode() != Cobrador.AdaptiveMode.NONE
+                ? "<br><b>Adaptativo:</b> " + getAdaptiveDescription(c.getAdaptiveMode())
+                : "";
         card.setToolTipText("<html><b>" + c.getName() + "</b><br>"
-                + c.getDescription() + "<br><br>"
-                + "Drenagem: -" + c.getDrainPerSecond() + " moedas/s<br>"
-                + "Custo para pagar: " + c.getPaymentCost() + " moedas<br>"
-                + "Penalidade ao atacar: -" + c.getLuckPenaltyOnAttack() + "% sorte<br>"
-                + "Efeito: " + getDebuffLabel(c.getDebuff()) + "</html>");
+                + c.getDescription()
+                + "<br><br>Drenagem: " + drainStr
+                + "<br>Custo para pagar: " + displayCost + " moedas (+" + c.getLuckOnPay() + "% sorte)"
+                + "<br>Penalidade ao atacar: -" + c.getLuckPenaltyOnAttack() + "% sorte"
+                + "<br>Recompensa ao derrotar: +" + c.getCoinRewardOnDefeat() + " moedas"
+                + "<br>Chance de carta: " + c.getRareCardChance() + "%"
+                + adaptiveDesc + "</html>");
 
         return card;
     }
@@ -411,12 +482,49 @@ public class CobradorManager {
         return total;
     }
 
-    private String getDebuffLabel(Cobrador.Debuff debuff) {
-        switch (debuff) {
-            case LUCK_DRAIN: return "Drena sorte/s";
-            case CLICK_WEAKEN: return "Enfraquece cliques (-2/clique)";
-            case DOUBLE_DRAIN: return "Drenagem em dobro";
-            default: return "Nenhum";
+    private String getDebuffDisplayText(Cobrador c) {
+        switch (c.getAdaptiveMode()) {
+            case CLICK_DRAIN:         return "Drena por clique";
+            case AMPLIFIED_DRAIN:     return "Drenagem 2x";
+            case LUCK_DRAIN_ADAPTIVE: return "Drena sorte -3%/s";
+            case GLASS_CANNON:        return "Dano 2x / HP reduzido";
+            default:
+                switch (c.getDebuff()) {
+                    case LUCK_DRAIN:   return "Drena sorte/s";
+                    case CLICK_WEAKEN: return "Enfraquece cliques (-2/clique)";
+                    case DOUBLE_DRAIN: return "Drenagem em dobro";
+                    default:           return "";
+                }
+        }
+    }
+
+    private String getAdaptiveBadge(Cobrador.AdaptiveMode mode) {
+        switch (mode) {
+            case CLICK_DRAIN:         return " [⚡]";
+            case AMPLIFIED_DRAIN:     return " [⬆]";
+            case LUCK_DRAIN_ADAPTIVE: return " [☽]";
+            case GLASS_CANNON:        return " [💀]";
+            default:                  return "";
+        }
+    }
+
+    private String getAdaptiveSpawnMsg(Cobrador.AdaptiveMode mode) {
+        switch (mode) {
+            case CLICK_DRAIN:         return " Drena a cada clique!";
+            case AMPLIFIED_DRAIN:     return " Explora sua geração passiva!";
+            case LUCK_DRAIN_ADAPTIVE: return " Mira na sua sorte!";
+            case GLASS_CANNON:        return " Perigoso, mas pode cair rápido!";
+            default:                  return "";
+        }
+    }
+
+    private String getAdaptiveDescription(Cobrador.AdaptiveMode mode) {
+        switch (mode) {
+            case CLICK_DRAIN:         return "Drena moedas por clique (build Clique)";
+            case AMPLIFIED_DRAIN:     return "Drenagem dobrada/s (build Passiva)";
+            case LUCK_DRAIN_ADAPTIVE: return "Drena -3% sorte/s (build Sorte)";
+            case GLASS_CANNON:        return "Drenagem dobrada, HP reduzido (build Risco)";
+            default:                  return "";
         }
     }
 

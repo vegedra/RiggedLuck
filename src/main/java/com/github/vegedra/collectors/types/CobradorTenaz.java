@@ -33,6 +33,9 @@ public class CobradorTenaz extends Cobrador {
                 "/images/enemies/cobrador_tenaz.gif",
                 Debuff.CLICK_WEAKEN
         );
+        this.luckOnPay = 12;            // Pagar ganha +12% sorte
+        this.coinRewardOnDefeat = 80;   // Derrotar ganha 80 moedas
+        this.rareCardChance = 25;       // 25% de chance de carta rara ao derrotar
     }
 
     @Override
@@ -47,20 +50,26 @@ public class CobradorTenaz extends Cobrador {
     @Override
     public int receberAtaque() {
         attacksReceived++;
-        if (attacksReceived >= ATTACKS_TO_DEFEAT) {
-            active = false; // Segundo ataque derrota
+        // GLASS_CANNON: build de Risco faz o Tenaz morrer em 1 ataque
+        int hitsNeeded = (getAdaptiveMode() == AdaptiveMode.GLASS_CANNON)
+                ? 1
+                : ATTACKS_TO_DEFEAT;
+        if (attacksReceived >= hitsNeeded) {
+            active = false;
         }
-        return luckPenaltyOnAttack; // Perde sorte a cada ataque
+        return luckPenaltyOnAttack;
     }
 
     @Override
     public void aplicarDebuff(Player player) {
-        // O debuff CLICK_WEAKEN é tratado diretamente por CobradorManager.getTotalClickPenalty().
-        // Não modifica player.clickValue aqui para evitar necessidade de restauração manual.
+        // O debuff CLICK_WEAKEN é tratado por CobradorManager.getTotalClickPenalty()
     }
 
-    // ── Getters específicos ────────────────────────────────────────────────
+    // Getters específicos
     public int getAttacksReceived()  { return attacksReceived; }
     public int getAttacksToDefeat()  { return ATTACKS_TO_DEFEAT; }
-    public int getRemainingHP() { return ATTACKS_TO_DEFEAT - attacksReceived; }
+    public int getRemainingHP() {
+        int hitsNeeded = (getAdaptiveMode() == AdaptiveMode.GLASS_CANNON) ? 1 : ATTACKS_TO_DEFEAT;
+        return Math.max(0, hitsNeeded - attacksReceived);
+    }
 }

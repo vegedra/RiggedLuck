@@ -112,9 +112,16 @@ public class GameManager {
         player.changeCoins(baseGold);
         Sound.CLICK.play();
 
+        // Drenagem por clique de cobradores adaptativos (AdaptiveMode.CLICK_DRAIN)
+        if (cobradorManager != null) {
+            int clickDrain = cobradorManager.getClickDrainPerHit();
+            if (clickDrain > 0) {
+                player.changeCoins(-clickDrain);
+            }
+        }
+
         // Acumula cliques para o próximo tick de sorte
-        // (precisamos de um contador de cliques no segundo atual)
-        timerManager.incrementClicksThisSecond(); // variável de instância a ser adicionada
+        timerManager.incrementClicksThisSecond();
         updateCounter();
         updateClickValueDisplay();
         checkGameOver();
@@ -127,30 +134,114 @@ public class GameManager {
             return;
         }
 
-        int emptyIndex = -1;
-        for (int i = 0; i < activeCards.length; i++) {
-            if (activeCards[i] == null) { emptyIndex = i; break; }
-        }
-        if (emptyIndex == -1) {
-            ui.showMessage("Limite de cartas atingido!", Color.RED);
-            return;
-        }
-
         player.changeCoins(-rollCost);
         Sound.ROLL.play();
         rollsMade++;
 
         Card newCard = generator.generateCard(player.getLuck(), activeCards);
-        activeCards[emptyIndex] = newCard;
 
-        // Aplica efeitos da carta no jogador
-        player.addClickValue(newCard.clickValue);
+        int emptyIndex = findEmptyCardSlot();
+        if (emptyIndex != -1) {
+            // Slot disponível
+            placeCard(emptyIndex, newCard);
+        } else {
+            // Todos os slots cheios: pede substituição
+            int replaceIndex = promptCardReplacement(newCard);
+            if (replaceIndex < 0) {
+                ui.showMessage("Substituição cancelada. A carta foi perdida.", Color.GRAY);
+                refreshUI();
+                return;
+            }
+            replaceCard(replaceIndex, newCard);
+        }
 
-        // Atualiza a UI
-        cardUI.updateCardUI(emptyIndex, activeCards[emptyIndex]);
         refreshUI();
         ui.showMessage("Nova carta: " + newCard.name, Color.GREEN);
     }
+
+    /**
+     * Concede uma carta de recompensa ao derrotar um cobrador (gratuita).
+     * Usa sorte elevada para gerar uma carta melhor que a média.
+     * Retorna true se a carta foi aceita.
+     */
+    public boolean grantFightRewardCard() {
+        // Simula sorte maior para tender a cartas mais raras
+        int boostedLuck = Math.min(100, player.getLuck() + 40);
+        Card rewardCard = generator.generateCard(boostedLuck, activeCards);
+
+        int emptyIndex = findEmptyCardSlot();
+        if (emptyIndex != -1) {
+            placeCard(emptyIndex, rewardCard);
+            refreshUI();
+            ui.showMessage("Recompensa: " + rewardCard.name + "!", Color.YELLOW);
+            return true;
+        }
+
+        // Slots cheios: oferece substituição
+        int replaceIndex = promptCardReplacement(rewardCard);
+        if (replaceIndex >= 0) {
+            replaceCard(replaceIndex, rewardCard);
+            refreshUI();
+            ui.showMessage("Recompensa: " + rewardCard.name + "!", Color.YELLOW);
+            return true;
+        }
+
+        return false; // Jogador recusou a substituição
+    }
+
+    // Coloca a carta num slot vazio e aplica seus efeitos
+    private void placeCard(int index, Card card) {
+        activeCards[index] = card;
+        player.addClickValue(card.clickValue);
+        cardUI.updateCardUI(index, card);
+    }
+
+    // Substitui a carta em um slot, removendo os efeitos da antiga
+    private void replaceCard(int index, Card newCard) {
+        Card oldCard = activeCards[index];
+        if (oldCard != null) {
+            player.addClickValue(-oldCard.clickValue);
+        }
+        activeCards[index] = newCard;
+        player.addClickValue(newCard.clickValue);
+        cardUI.updateCardUI(index, newCard);
+    }
+
+    // Retorna o primeiro slot vazio, ou -1 se todos cheios
+    private int findEmptyCardSlot() {
+        for (int i = 0; i < activeCards.length; i++) {
+            if (activeCards[i] == null) return i;
+        }
+        return -1;
+    }
+
+    /**
+     * Exibe um diálogo para o jogador escolher qual carta substituir.
+     * Retorna o índice escolhido, ou -1 se cancelado.
+     */
+    private int promptCardReplacement(Card newCard) {
+        String[] options = new String[activeCards.length + 1];
+        for (int i = 0; i < activeCards.length; i++) {
+            Card c = activeCards[i];
+            options[i] = (i + 1) + ". " + c.name + " (" + c.rarity + ")";
+        }
+        options[activeCards.length] = "Cancelar";
+
+        String message = "<html><b>Cartas cheias!</b><br><br>"
+                + "Nova carta: <b>" + newCard.name + "</b> (" + newCard.rarity + ")<br>"
+                + newCard.desc + "<br><br>"
+                + "Escolha qual carta substituir:</html>";
+
+        int choice = JOptionPane.showOptionDialog(
+                ui.window, message, "Substituir Carta",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
+                null, options, options[activeCards.length]
+        );
+
+        if (choice < 0 || choice == activeCards.length) return -1;
+        return choice;
+    }
+
 
     // Cartas de uso ativo
     public void activateCard(int index) {
