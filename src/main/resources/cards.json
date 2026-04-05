@@ -45,10 +45,10 @@
       "type": "CLICK",
       "rarity": "RARE",
       "desc": "Cliques rendem +4 de ouro, mas aumenta oscilação de sorte em 30%.",
-      "click_value": 4,
+      "click_value": 12,
       "luck_per_click": 0.2,
       "coins_per_second": 0,
-      "luck_per_second": 0,
+      "luck_per_second": -1,
       "active": false,
       "active_effect": "NONE"
     },

@@ -24,14 +24,14 @@ public class CobradorManager {
 
     // Constantes
     private static final int MAX_COBRADORES = 5;
-    private static final int SPAWN_INTERVAL_SEC = 15;      // Verifica spawn a cada 15s
-    private static final int SPAWN_CHANCE_BASE = 25;    // 25% base de chance de spawn
-    private static final int COINS_TRIGGER = 100;        // Mínimo de moedas para ativar sistema (100)
+    private static final int SPAWN_INTERVAL_SEC = 15;       // Verifica spawn a cada 15s
+    private static final int SPAWN_CHANCE_BASE = 30;        // 25% base de chance de spawn
+    private static final int COINS_TRIGGER = 100;           // Mínimo de moedas para ativar sistema (100)
 
     // Dimensões do card dos cobradores
     private static final int CARD_W = 200;
     private static final int CARD_H = 280;
-    private static final int STACK_OFFSET = 6;                      // deslocamento px entre cada carta no deck
+    private static final int STACK_OFFSET = 6;              // deslocamento px entre cada carta no deck
     // Layout interno
     private static final int NAME_Y    = 5;
     private static final int NAME_H    = 22;
@@ -105,14 +105,23 @@ public class CobradorManager {
             if (c != null && c.isActive()) {
                 player.changeCoins(-c.getDrainPerSecond());
                 c.tick();
-                c.aplicarDebuff(player);
+                // O Eremita: bloqueia debuffs que afetam sorte diretamente
+                if (c.getDebuff() == Cobrador.Debuff.LUCK_DRAIN && gm.hasCard("o_ermitao")) {
+                // sorte protegida
+                } else {
+                    c.aplicarDebuff(player);
+                }
             }
         }
 
         // Contagem regressiva para verificação de spawn
         ticksUntilSpawnCheck--;
         if (ticksUntilSpawnCheck <= 0) {
-            ticksUntilSpawnCheck = SPAWN_INTERVAL_SEC;
+            // O Enforcado: cobradores demoram 20% mais para aparecer
+            int interval = gm.hasCard("o_enforcado")
+                    ? (int)(SPAWN_INTERVAL_SEC * 1.2)
+                    : SPAWN_INTERVAL_SEC;
+            ticksUntilSpawnCheck = interval;
             trySpawn(secondsElapsed);
         }
 
@@ -128,7 +137,8 @@ public class CobradorManager {
 
         // Chance de spawn cresce com o tempo de jogo (máx 80%)
         int minutes = secondsElapsed / 60;
-        int chance = Math.min(80, SPAWN_CHANCE_BASE + minutes * 3);
+        int effectiveBase = player.getLuck() > 90 ? SPAWN_CHANCE_BASE * 2 : SPAWN_CHANCE_BASE;
+        int chance = Math.min(80, effectiveBase + minutes * 3);
 
         if ((int)(Math.random() * 100) < chance) {
             spawn(secondsElapsed);
@@ -157,7 +167,9 @@ public class CobradorManager {
         Cobrador c = cobradores[index];
         if (c == null || !c.isActive()) return;
 
-        int cost = c.getPaymentCost();
+        int baseCost = c.getPaymentCost();
+        // A Imperatriz: pagar cobradores custa 30% menos
+        int cost = gm.hasCard("a_imperatriz") ? (int)(baseCost * 0.7f) : baseCost;
         if (player.getCoins() < cost) {
             ui.showMessage("Moedas insuficientes para pagar!", Color.RED);
             return;
@@ -179,8 +191,11 @@ public class CobradorManager {
         if (c == null || !c.isActive()) return;
 
         int luckPenalty = c.receberAtaque();
-        player.changeLuck(-luckPenalty);
-        gm.updateLuckLabel();
+        // O Eremita: cobradores não afetam sorte diretamente
+        if (!gm.hasCard("o_ermitao")) {
+            player.changeLuck(-luckPenalty);
+            gm.updateLuckLabel();
+        }
 
         // Cobrador foi derrotado
         if (!c.isActive()) {
@@ -227,7 +242,7 @@ public class CobradorManager {
         // Z-order em Swing (null layout)
         for (int layer = 0; layer < activeCount; layer++) {
             int cobradorIndex = activeIndexes[layer];
-            Cobrador c        = cobradores[cobradorIndex];
+            Cobrador c = cobradores[cobradorIndex];
 
             int offsetX = layer * STACK_OFFSET;
             int offsetY = layer * STACK_OFFSET;
@@ -319,7 +334,8 @@ public class CobradorManager {
         }
 
         // Botão Pagar
-        JButton payBtn = new JButton("Pagar (" + c.getPaymentCost() + " moedas)");
+        int displayCost = gm.hasCard("a_imperatriz") ? (int)(c.getPaymentCost() * 0.7f) : c.getPaymentCost();
+        JButton payBtn = new JButton("Pagar (" + displayCost + " moedas)");
         payBtn.setFont(new Font("Cambria", Font.PLAIN, 11));
         payBtn.setFocusPainted(false);
         payBtn.setBackground(new Color(60, 140, 60));
@@ -409,7 +425,7 @@ public class CobradorManager {
         for (int i = 0; i < MAX_COBRADORES; i++) {
             cobradores[i] = null;
         }
-        spawnEnabled         = false;
+        spawnEnabled = false;
         ticksUntilSpawnCheck = SPAWN_INTERVAL_SEC;
         if (deckContainer != null) {
             deckContainer.removeAll();
