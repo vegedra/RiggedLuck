@@ -28,7 +28,6 @@ public class GameManager {
     private final UI ui;
     private final CardUI cardUI;
     private final TimerManager timerManager;
-    //private final CardManager cardManager;    TODO
 
     private static final int MAX_CARDS = 9;
     private Card[] activeCards = new Card[MAX_CARDS];
@@ -55,8 +54,6 @@ public class GameManager {
         this.vm       = vm;
         this.rollCost = 20;
 
-        //this.cardManager = new CardManager(player); TODO
-        //this.timerManager = new TimerManager(player, cardManager, this);    // Substitui depois
         this.cardUI = new CardUI(ui, this, cHandler);
         this.timerManager = new TimerManager(player, this);
         this.cobradorManager = new CobradorManager(ui, player, this, cHandler);
@@ -134,36 +131,29 @@ public class GameManager {
             return;
         }
 
+        // Procura slot vazio
+        int emptyIndex = findEmptyCardSlot();
+        if (emptyIndex == -1) {
+            ui.showMessage("Limite de cartas atingido!", Color.RED);
+            return;
+        }
+
+        // Atualiza
         player.changeCoins(-rollCost);
         Sound.ROLL.play();
         rollsMade++;
 
+        // Gera carta nova
         Card newCard = generator.generateCard(player.getLuck(), activeCards);
+        placeCard(emptyIndex, newCard);
 
-        int emptyIndex = findEmptyCardSlot();
-        if (emptyIndex != -1) {
-            // Slot disponível
-            placeCard(emptyIndex, newCard);
-        } else {
-            // Todos os slots cheios: pede substituição
-            int replaceIndex = promptCardReplacement(newCard);
-            if (replaceIndex < 0) {
-                ui.showMessage("Substituição cancelada. A carta foi perdida.", Color.GRAY);
-                refreshUI();
-                return;
-            }
-            replaceCard(replaceIndex, newCard);
-        }
-
+        // Atualiza
         refreshUI();
         ui.showMessage("Nova carta: " + newCard.name, Color.GREEN);
     }
 
-    /**
-     * Concede uma carta de recompensa ao derrotar um cobrador (gratuita).
-     * Usa sorte elevada para gerar uma carta melhor que a média.
-     * Retorna true se a carta foi aceita.
-     */
+
+    // Concede uma carta de recompensa ao derrotar um cobrador
     public boolean grantFightRewardCard() {
         // Simula sorte maior para tender a cartas mais raras
         int boostedLuck = Math.min(100, player.getLuck() + 40);
@@ -305,7 +295,6 @@ public class GameManager {
         cardUI.updateCardUI(index, activeCards[index]);  // slot fica cinza/consumido
     }
 
-    // Efeito carta - TODO: Coloca no CardManager depois
     public void activateJulgamento() {
         for (Card c : activeCards) {
             if (c != null && c.id.equals("o_julgamento")) {
@@ -382,7 +371,6 @@ public class GameManager {
     }
 
     // Custo de descarte: baseado em clickValue, CPS e efeito de sorte
-    // TODO: mover para CardManager
     public int calcDiscardCost(Card c) {
         // Cartas mais poderosas custam mais pra descartar
         int base = (Math.abs(c.clickValue) + Math.abs(c.coinsPerSecond)) * 2;

@@ -75,7 +75,8 @@ public class Main {
                 // Iniciar jogo - menu inicial
                 case "start":
                     // Define o modo de jogo e toca sfx
-                    gameMode = ui.gameModeSelect();
+                    //gameMode = ui.gameModeSelect();
+                    gameMode = 0;
                     Sound.CLICK.play();
 
                     // Reseta o jogo e o inicia, trocando de tela e fazendo as mudanças pro modo de jogo

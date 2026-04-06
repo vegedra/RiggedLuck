@@ -322,9 +322,8 @@ public class CobradorManager {
 
         // Frente da carta (carta interativa da frente)
         // Nome no topo
-        // Nome + badge do modo adaptativo
-        String adaptiveBadge = getAdaptiveBadge(c.getAdaptiveMode());
-        JLabel nameLabel = new JLabel(c.getName() + adaptiveBadge, SwingConstants.CENTER);
+        //String adaptiveBadge = getAdaptiveBadge(c.getAdaptiveMode());     badge do modo adaptativo
+        JLabel nameLabel = new JLabel(c.getName(), SwingConstants.CENTER);
         nameLabel.setFont(new Font("Cambria", Font.BOLD, 12));
         nameLabel.setForeground(Color.BLACK);
         nameLabel.setBounds(4, NAME_Y, CARD_W - 8, NAME_H);
@@ -412,7 +411,7 @@ public class CobradorManager {
         // Botão Atacar — mostra recompensa ao vencer
         JButton attackBtn = new JButton(
                 "<html><center>Atacar"
-                        + " <font size='1'>(+" + c.getCoinRewardOnDefeat() + "m)</font></center></html>"
+                        + " <font size='1'>(+" + c.getCoinRewardOnDefeat() + " moedas)</font></center></html>"
         );
         attackBtn.setFont(new Font("Cambria", Font.BOLD, 11));
         attackBtn.setFocusPainted(false);
