@@ -137,18 +137,25 @@ public class GameManager {
             return;
         }
 
+        // Gera 3 opções e abre o picker estilo roguelike, o custo só é cobrado se o jogador escolher
+        Card[] options = generator.generateOptions(player.getLuck(), activeCards, 3);
+        CardPickerDialog picker = new CardPickerDialog(ui.window, options, rollCost);
+        picker.setVisible(true);    // bloqueia até fechar (modal)
+
+        Card chosen = picker.getChosenCard();
+        if (chosen == null) return; // jogador fechou sem escolher
+
         // Atualiza
         player.changeCoins(-rollCost);
         Sound.ROLL.play();
         rollsMade++;
 
-        // Gera carta nova
-        Card newCard = generator.generateCard(player.getLuck(), activeCards);
-        placeCard(emptyIndex, newCard);
+        //Card newCard = generator.generateCard(player.getLuck(), activeCards);
+        placeCard(emptyIndex, chosen);
 
         // Atualiza
         refreshUI();
-        ui.showMessage("Nova carta: " + newCard.name, Color.GREEN);
+        ui.showMessage("Nova carta: " + chosen.name, Color.GREEN);
     }
 
 

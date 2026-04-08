@@ -60,6 +60,25 @@ public class Main {
 
         // Carrega a tela inicial
         vm.showTitleScreen();
+
+        // Suporte ao teclado
+        ui.window.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                switch (e.getKeyCode()) {
+                    case java.awt.event.KeyEvent.VK_ENTER:
+                    case java.awt.event.KeyEvent.VK_ESCAPE:
+                        cHandler.actionPerformed(new java.awt.event.ActionEvent(this, java.awt.event.ActionEvent.ACTION_PERFORMED, "pause"));
+                        break;
+                    case java.awt.event.KeyEvent.VK_SPACE:
+                        cHandler.actionPerformed(new java.awt.event.ActionEvent(this, java.awt.event.ActionEvent.ACTION_PERFORMED, "clicker"));
+                        break;
+                    case java.awt.event.KeyEvent.VK_P:
+                        cHandler.actionPerformed(new java.awt.event.ActionEvent(this, java.awt.event.ActionEvent.ACTION_PERFORMED, "roll"));
+                        break;
+                }
+            }
+        });
     }
 
     

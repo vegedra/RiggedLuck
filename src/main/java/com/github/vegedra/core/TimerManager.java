@@ -24,6 +24,7 @@ public class TimerManager {
     private Timer timer;
     private int secondsElapsed = 0;
     private int clicksThisSecond = 0;
+    private boolean luckDecayUnlocked = false;
 
     // Construtor
     public TimerManager(Player player, GameManager gm) {
@@ -78,20 +79,27 @@ public class TimerManager {
 
     // Oscilação da sorte (chamado a cada segundo, com cliques no período)
     private void updateLuck(int clicksInSecond) {
+        // Tempo pro jogador se habituar
+        if (!luckDecayUnlocked) {
+            if (player.getCoins() < 35) return;
+            // alternativa: if (gm.rollsMade < 1) return;
+            luckDecayUnlocked = true;
+        }
+
         // Tendência negativa cresce com o tempo
         float minutes = secondsElapsed / 60f;
 
-        float tendency = 0.8f + minutes * 0.28f;    // float tendency = 0.5f + minutes * 0.15f;
-        tendency = Math.min(tendency, 8f);        // 3.5f
+        float tendency = 0.5f + minutes * 0.15f;    // float tendency = 0.5f + minutes * 0.15f;
+        tendency = Math.min(tendency, 5f);        // 3.5f
 
         // Oscilação aleatória crescente
-        float oscBase = 3f + minutes * 0.6f;        // float oscBase = 2f + minutes * 0.4f;
-        oscBase = Math.min(oscBase, 18f);           // 12f
+        float oscBase = 2f + minutes * 0.4f;        // float oscBase = 2f + minutes * 0.4f;
+        oscBase = Math.min(oscBase, 15f);           // 12f
         if (gm.hasCard("o_diabo"))  oscBase *= 2;
         float variation = (float)(Math.random() * oscBase * 2) - oscBase;
 
         // Bônus por clique (inclui bônus das cartas)
-        float clickBonus = 0.1f;        // base 0.2f
+        float clickBonus = 0.2f;        // base 0.2f
         for (Card c : gm.getActiveCards()) {
             if (c != null) clickBonus += c.luckPerClick;
         }
@@ -119,8 +127,9 @@ public class TimerManager {
 
     // Reseta os contadores
     public void resetCounters() {
-        secondsElapsed   = 0;
+        secondsElapsed = 0;
         clicksThisSecond = 0;
+        luckDecayUnlocked = false;
     }
 
     // Parar os timers

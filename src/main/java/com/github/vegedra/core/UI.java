@@ -315,6 +315,21 @@ public class UI {
 
         window.pack();  // Ajusta a janela pro tamanho selecionado
         window.setVisible(true);
+
+        // "Fullscreen" com F11 (teste)
+        window.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_F11) {
+                    if (window.getExtendedState() == JFrame.MAXIMIZED_BOTH) {
+                        window.setExtendedState(JFrame.NORMAL);
+                    } else {
+                        window.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                    }
+                }
+            }
+        });
+        window.setFocusable(true);
     }
 
     // Trocar telas no VisibilityManager

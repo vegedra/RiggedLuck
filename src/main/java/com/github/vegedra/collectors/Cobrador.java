@@ -18,19 +18,19 @@ public abstract class Cobrador {
 
     // Tipos de debuff passivo que um cobrador pode aplicar enquanto ativo
     public enum Debuff {
-        NONE,           // Sem efeito extra
-        LUCK_DRAIN,     // Drena sorte por segundo
-        CLICK_WEAKEN,   // Penaliza o valor de clique (calculado via CobradorManager)
-        DOUBLE_DRAIN    // Drenagem de moedas em dobro após X segundos
+        NONE,                   // Sem efeito extra
+        LUCK_DRAIN,             // Drena sorte por segundo
+        CLICK_WEAKEN,           // Penaliza o valor de clique (calculado via CobradorManager)
+        DOUBLE_DRAIN            // Drenagem de moedas em dobro após X segundos
     }
 
     // Modo adaptativo: definido no spawn com base na build do jogador
     public enum AdaptiveMode {
-        NONE,                // Sem adaptação — comportamento padrão
-        CLICK_DRAIN,         // Drena ouro por clique em vez de por segundo (build Clique)
-        AMPLIFIED_DRAIN,     // Drenagem por segundo dobrada (build Passiva)
-        LUCK_DRAIN_ADAPTIVE, // Drena sorte agressivamente a cada segundo (build Sorte)
-        GLASS_CANNON         // Drenagem dobrada, mas morre mais rápido (build Risco)
+        NONE,                   // Sem adaptação — comportamento padrão
+        CLICK_DRAIN,            // Drena ouro por clique em vez de por segundo (build Clique)
+        AMPLIFIED_DRAIN,        // Drenagem por segundo dobrada (build Passiva)
+        LUCK_DRAIN_ADAPTIVE,    // Drena sorte agressivamente a cada segundo (build Sorte)
+        GLASS_CANNON            // Drenagem dobrada, mas morre mais rápido (build Risco)
     }
 
     // Atributos base — definidos por cada subclasse via super()
@@ -43,12 +43,12 @@ public abstract class Cobrador {
     protected final String iconPath;    // Imagem
     protected final Debuff debuff;
 
-    // Recompensas ao enfrentar e pagar — definidas por cada subclasse
-    protected int luckOnPay         = 0;   // Sorte ganha ao pagar
+    // Recompensas ao enfrentar e pagar
+    protected int luckOnPay = 0;   // Sorte ganha ao pagar
     protected int coinRewardOnDefeat = 0;  // Moedas ganhas ao derrotar no combate
-    protected int rareCardChance    = 0;   // % de chance de carta rara ao derrotar (0–100)
+    protected int rareCardChance = 0;   // % de chance de carta rara ao derrotar (0–100)
 
-    // Modo adaptativo — definido pelo CobradorFactory no spawn
+    // Modo adaptativo (definido pelo CobradorFactory no spawn)
     private AdaptiveMode adaptiveMode = AdaptiveMode.NONE;
 
     // Estado de instância
@@ -97,11 +97,7 @@ public abstract class Cobrador {
         }
     }
 
-    /**
-     * Percentual das moedas do jogador a drenar por segundo.
-     * Aplicado como max(flat, percent) em CobradorManager.tick().
-     * Cada subtipo define o seu valor.
-     */
+    // Percentual das moedas do jogador a drenar por segundo.
     public abstract double getDrainPercent();
 
     // Retorna true se este cobrador drena por clique em vez de por segundo

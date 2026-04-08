@@ -72,10 +72,11 @@ public class CobradorFactory {
         return c;
     }
 
-    /** Mantém compatibilidade com chamadas sem cartas. */
+    /*
     public static Cobrador createRandom(int secondsElapsed) {
         return createRandom(secondsElapsed, null);
     }
+     */
 
     /**
      * Analisa as cartas ativas e determina o modo adaptativo do cobrador.

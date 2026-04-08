@@ -65,11 +65,11 @@ public class CardGenerator {
         // Pesos base (quanto maior o peso, maior a chance)
         int commonWeight   = 60;
         int uncommonWeight = 30;
-        int rareWeight     = 9;
+        int rareWeight     = 5;     // 9
         int mythicWeight   = 1;  // mítico só aparece com sorte >= 70
 
-        // Bônus por sorte a partir de 60
-        final int minForBonus = 60;
+        // Bônus por sorte
+        final int minForBonus = 70;     // 60
         if (luck > minForBonus) {
             // A cada 10 pontos acima de 50, ganha 1 de peso para raro
             // e 0.5 para mítico (arredondado para baixo, mínimo 1 quando aplicável)
@@ -98,6 +98,19 @@ public class CardGenerator {
         if (roll < mythicWeight + rareWeight + uncommonWeight)
             return Card.Rarity.UNCOMMON;
         return Card.Rarity.COMMON;
+    }
+
+    // Gera N cartas distintas para o picker (não repete ID entre elas nem com activeCards)
+    public Card[] generateOptions(int luck, Card[] activeCards, int count) {
+        Card[] options = new Card[count];
+        for (int i = 0; i < count; i++) {
+            // Passa activeCards + opções já geradas para evitar duplicatas
+            Card[] extended = new Card[activeCards.length + i];
+            System.arraycopy(activeCards, 0, extended, 0, activeCards.length);
+            for (int j = 0; j < i; j++) extended[activeCards.length + j] = options[j];
+            options[i] = generateCard(luck, extended);
+        }
+        return options;
     }
 
     // Fallback
