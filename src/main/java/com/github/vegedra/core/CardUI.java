@@ -125,6 +125,28 @@ public class CardUI {
             ui.cardSlots[index].setToolTipText(tooltip);
         }
 
+        // Botão direito: descarta a carta diretamente (com confirmação)
+        final int slotIndex = index;
+        ui.cardSlots[index].addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getButton() == java.awt.event.MouseEvent.BUTTON3) {
+                    Card card = gm.getActiveCards()[slotIndex];
+                    if (card == null) return;
+                    int sellValue = gm.calcSellValue(card);
+                    int confirm = javax.swing.JOptionPane.showConfirmDialog(
+                            ui.cardSlots[slotIndex],
+                            "<html>Vender <b>" + card.name + "</b>?<br>Você receberá <b>+" + sellValue + " moedas</b>.</html>",
+                            "Vender carta",
+                            javax.swing.JOptionPane.YES_NO_OPTION
+                    );
+                    if (confirm == javax.swing.JOptionPane.YES_OPTION) {
+                        gm.handleDiscard(slotIndex);
+                    }
+                }
+            }
+        });
+
         ui.cardSlots[index].revalidate();
         ui.cardSlots[index].repaint();
     }

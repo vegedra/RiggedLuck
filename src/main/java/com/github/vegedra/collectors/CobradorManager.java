@@ -104,14 +104,15 @@ public class CobradorManager {
         for (Cobrador c : cobradores) {
             if (c == null || !c.isActive()) continue;
 
-            // CLICK_DRAIN não drena por segundo — é descontado em cada clique
+            // CLICK_DRAIN não drena por segundo, é descontado em cada clique
             if (!c.drainsPerClick()) {
-                int drain = c.getDrainPerSecond();
+                int baseDrain = c.getDrainPerSecond();
                 if (c.getAdaptiveMode() == Cobrador.AdaptiveMode.AMPLIFIED_DRAIN ||
                         c.getAdaptiveMode() == Cobrador.AdaptiveMode.GLASS_CANNON) {
-                    drain *= 2;
+                    baseDrain *= 2;
                 }
-                player.changeCoins(-drain);
+                int percentDrain = (int)(player.getCoins() * c.getDrainPercent());
+                player.changeCoins(-Math.max(baseDrain, percentDrain));
             }
 
             c.tick();

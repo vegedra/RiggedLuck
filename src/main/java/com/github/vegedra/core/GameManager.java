@@ -14,7 +14,6 @@ package com.github.vegedra.core;
 import com.github.vegedra.audio.Sound;
 import com.github.vegedra.cards.Card;
 import com.github.vegedra.cards.CardGenerator;
-import com.github.vegedra.cards.CardManager;
 import com.github.vegedra.collectors.CobradorManager;
 
 import javax.swing.*;
@@ -352,34 +351,37 @@ public class GameManager {
         if (c == null) return;
 
         // Custo do descarte
-        int discardCost = calcDiscardCost(c);
-        if (player.getCoins() < discardCost) {
-            ui.showMessage("Moedas insuficientes!", Color.RED);
-            return;
-        }
-
-        player.changeCoins(-discardCost);
-        player.addClickValue(-c.clickValue);    // Remove bônus de clique
-        activeCards[index] = null;              // Esvazia o slot
+        int sellValue = calcSellValue(c);
+        player.addClickValue(-c.clickValue);
+        player.changeCoins(sellValue);
+        activeCards[index] = null;
 
         // Atualiza UI
         cardUI.updateCardUI(index, activeCards[index]);
         refreshUI();
 
-        ui.showMessage("Carta descartada (-" + discardCost + " moedas)", Color.GREEN);
+        ui.showMessage("Carta vendida (+" + sellValue + " moedas)", Color.GREEN);
         Sound.DISCARD.play();
     }
 
-    // Custo de descarte: baseado em clickValue, CPS e efeito de sorte
-    public int calcDiscardCost(Card c) {
-        // Cartas mais poderosas custam mais pra descartar
-        int base = (Math.abs(c.clickValue) + Math.abs(c.coinsPerSecond)) * 2;
-        // Cartas de Sorte/Risco/Sinérgicas têm custo mínimo de 10
-        if (c.type == Card.CardType.LUCK || c.type == Card.CardType.RISK || c.type == Card.CardType.SYNERGY) {
-            base = Math.max(base, 10);
+    /**
+     * Valor de venda: ~40% do poder da carta + bônus por raridade.
+     * Mínimo de 5 moedas para sempre valer algo.
+     */
+    public int calcSellValue(Card c) {
+        int power = (Math.abs(c.clickValue) * 3) + (Math.abs(c.coinsPerSecond) * 4);
+        int rarityBonus;
+        switch (c.rarity) {
+            case MYTHIC:   rarityBonus = 120; break;
+            case RARE:     rarityBonus = 50;  break;
+            case UNCOMMON: rarityBonus = 20;  break;
+            default:       rarityBonus = 5;   break;
         }
-        return base;
+        return Math.max(5, (int)(power * 0.4f) + rarityBonus);
     }
+
+    // Mantido por compatibilidade com CardUI (tooltip)
+    public int calcDiscardCost(Card c) { return calcSellValue(c); }
 
 
     // Utilitários

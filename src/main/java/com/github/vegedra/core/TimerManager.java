@@ -12,7 +12,6 @@
 package com.github.vegedra.core;
 
 import com.github.vegedra.cards.Card;
-import com.github.vegedra.cards.CardManager;
 
 import javax.swing.*;
 
@@ -20,21 +19,11 @@ public class TimerManager {
 
     // Variáveis e objetos
     private final Player player;
-    //private final CardManager cm;
     private final GameManager gm;
 
     private Timer timer;
     private int secondsElapsed = 0;
     private int clicksThisSecond = 0;
-
-    /*
-    public TimerManager(Player player, CardManager cardManager, GameManager gm) {
-        this.player = player;
-        this.cm = cardManager;
-        this.gm = gm;
-    }
-    Usa quando fizer o CardManager
-     */
 
     // Construtor
     public TimerManager(Player player, GameManager gm) {
@@ -77,7 +66,6 @@ public class TimerManager {
             gm.updateCPSLabel();
             gm.updateLuckLabel();
             gm.updateClickValueDisplay();
-            // TODO: checkCollectorSpawn();
 
             // Dobra moedas passivas a cada 60s
             if (secondsElapsed % 60 == 0 && secondsElapsed > 0) {
@@ -92,17 +80,18 @@ public class TimerManager {
     private void updateLuck(int clicksInSecond) {
         // Tendência negativa cresce com o tempo
         float minutes = secondsElapsed / 60f;
-        float tendency = 0.5f + minutes * 0.15f;
-        tendency = Math.min(tendency, 3.5f);
+
+        float tendency = 0.8f + minutes * 0.28f;    // float tendency = 0.5f + minutes * 0.15f;
+        tendency = Math.min(tendency, 8f);        // 3.5f
 
         // Oscilação aleatória crescente
-        float oscBase = 2f + minutes * 0.4f;
-        oscBase = Math.min(oscBase, 12f);
+        float oscBase = 3f + minutes * 0.6f;        // float oscBase = 2f + minutes * 0.4f;
+        oscBase = Math.min(oscBase, 18f);           // 12f
         if (gm.hasCard("o_diabo"))  oscBase *= 2;
         float variation = (float)(Math.random() * oscBase * 2) - oscBase;
 
         // Bônus por clique (inclui bônus das cartas)
-        float clickBonus = 0.2f; // base
+        float clickBonus = 0.1f;        // base 0.2f
         for (Card c : gm.getActiveCards()) {
             if (c != null) clickBonus += c.luckPerClick;
         }

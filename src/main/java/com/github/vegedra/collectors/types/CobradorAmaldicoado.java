@@ -53,4 +53,7 @@ public class CobradorAmaldicoado extends Cobrador {
         // Drena 2% de sorte por segundo — mais agressivo que o Agressor
         player.changeLuck(-2);
     }
+
+    @Override
+    public double getDrainPercent() { return 0.04; }
 }

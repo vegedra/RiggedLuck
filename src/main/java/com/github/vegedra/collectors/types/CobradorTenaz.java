@@ -65,7 +65,10 @@ public class CobradorTenaz extends Cobrador {
         // O debuff CLICK_WEAKEN é tratado por CobradorManager.getTotalClickPenalty()
     }
 
-    // Getters específicos
+    @Override
+    public double getDrainPercent() { return 0.015; }
+
+    // Getters
     public int getAttacksReceived()  { return attacksReceived; }
     public int getAttacksToDefeat()  { return ATTACKS_TO_DEFEAT; }
     public int getRemainingHP() {

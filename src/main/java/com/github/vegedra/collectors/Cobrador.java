@@ -97,6 +97,13 @@ public abstract class Cobrador {
         }
     }
 
+    /**
+     * Percentual das moedas do jogador a drenar por segundo.
+     * Aplicado como max(flat, percent) em CobradorManager.tick().
+     * Cada subtipo define o seu valor.
+     */
+    public abstract double getDrainPercent();
+
     // Retorna true se este cobrador drena por clique em vez de por segundo
     public boolean drainsPerClick() {
         return adaptiveMode == AdaptiveMode.CLICK_DRAIN;

@@ -53,4 +53,7 @@ public class CobradorAgressor extends Cobrador {
         // Drena 1% de sorte adicional por segundo além da drenagem normal de moedas
         player.changeLuck(-1);
     }
+
+    @Override
+    public double getDrainPercent() { return 0.025; }
 }

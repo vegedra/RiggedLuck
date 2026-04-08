@@ -52,4 +52,7 @@ public class CobradorBasico extends Cobrador {
     public void aplicarDebuff(Player player) {
         // Sem debuff extra
     }
+
+    @Override
+    public double getDrainPercent() { return 0.01; }
 }
