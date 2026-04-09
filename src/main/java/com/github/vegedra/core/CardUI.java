@@ -41,6 +41,19 @@ public class CardUI {
         }
     }
 
+    // Usa emojis como sprite
+    private String getTypeEmoji(Card.CardType type) {
+        switch (type) {
+            case CLICK:   return "👆";
+            case PASSIVE: return "⏳";
+            case LUCK:    return "🍀";
+            case DEFENSE: return "🛡️";
+            case RISK:    return "🎲";
+            case SYNERGY: return "⭐";
+            default:      return "🃏";
+        }
+    }
+
     // Atualiza UI das cartas
     public void updateCardUI(int index, Card c) {
         ui.cardSlots[index].removeAll();
@@ -81,7 +94,7 @@ public class CardUI {
             if (playerActivated && !c.used) {
                 JButton activateBtn = new JButton(
                         "<html><center><font color='" + getRarityColor(c.rarity) + "'>"
-                                + cardName + "</font><br><font size='1'>[ USAR ]</font></center></html>"
+                                + getTypeEmoji(c.type) + " " + cardName + "</font><br><font size='1'>[ USAR ]</font></center></html>"
                 );
                 activateBtn.setFocusPainted(false);
                 activateBtn.setFont(new Font("Cambria", Font.BOLD, 10));
@@ -93,7 +106,7 @@ public class CardUI {
             // Carta já usada: nome riscado em cinza
             } else if (c.active && c.used) {
                 JLabel usedLabel = new JLabel(
-                        "<html><center><font color='gray'><s>" + cardName + "</s></font>"
+                        "<html><center><font color='gray'><s>" + getTypeEmoji(c.type) + "</s></font>"
                                 + "<br><font size='1' color='gray'>usado</font></center></html>",
                         SwingConstants.CENTER
                 );
@@ -103,12 +116,13 @@ public class CardUI {
 
             // Carta passiva
             } else {
+                String emoji = getTypeEmoji(c.type);
                 JLabel passiveLabel = new JLabel(
-                        "<html><font color='" + getRarityColor(c.rarity) + "'>"
-                                + cardName + "</font></html>",
+                        "<html><center><font color='" + getRarityColor(c.rarity) + "' size='5'>" + emoji + "</font></center></html>",
                         SwingConstants.CENTER
                 );
-                passiveLabel.setFont(new Font("Cambria", Font.BOLD, 11));
+                passiveLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 10));
+                passiveLabel.setToolTipText(tooltip);
                 ui.cardSlots[index].add(passiveLabel, BorderLayout.CENTER);
             }
 
