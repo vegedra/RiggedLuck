@@ -35,7 +35,7 @@ public class CobradorTenaz extends Cobrador {
         );
         this.luckOnPay = 12;            // Pagar ganha +12% sorte
         this.coinRewardOnDefeat = 80;   // Derrotar ganha 80 moedas
-        this.rareCardChance = 25;       // 25% de chance de carta rara ao derrotar
+        this.rareCardChance = 0;        // Chance de carta rara ao derrotar
     }
 
     @Override

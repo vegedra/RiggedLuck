@@ -28,9 +28,9 @@ public class CobradorAmaldicoado extends Cobrador {
                 "/images/enemies/cobrador_amaldicoado.gif",
                 Debuff.LUCK_DRAIN
         );
-        this.luckOnPay = 20;   // Pagar ganha +20% sorte
+        this.luckOnPay = 20;            // Pagar ganha +20% sorte
         this.coinRewardOnDefeat = 150;  // Derrotar ganha 150 moedas
-        this.rareCardChance = 40;   // 40% de chance de carta rara ao derrotar
+        this.rareCardChance = 0;        // Chance de carta rara ao derrotar
     }
 
     @Override

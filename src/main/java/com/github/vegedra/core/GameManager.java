@@ -133,12 +133,12 @@ public class GameManager {
         // Procura slot vazio
         int emptyIndex = findEmptyCardSlot();
         if (emptyIndex == -1) {
-            ui.showMessage("Limite de cartas atingido!", Color.RED);
+            ui.showMessage("Sem espaço! Descarte uma carta.", Color.RED);
             return;
         }
 
         // Gera 3 opções e abre o picker estilo roguelike, o custo só é cobrado se o jogador escolher
-        Card[] options = generator.generateOptions(player.getLuck(), activeCards, 3);
+        Card[] options = generator.generateOptions(player.getLuck(), activeCards, 2);       // 3
         CardPickerDialog picker = new CardPickerDialog(ui.window, options, rollCost);
         picker.setVisible(true);    // bloqueia até fechar (modal)
 

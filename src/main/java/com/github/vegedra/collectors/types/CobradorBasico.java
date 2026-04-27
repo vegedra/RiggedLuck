@@ -30,7 +30,7 @@ public class CobradorBasico extends Cobrador {
         );
         this.luckOnPay = 5;             // Pagar ganha +5% sorte
         this.coinRewardOnDefeat = 30;   // Derrotar ganha 30 moedas
-        this.rareCardChance = 10;       // 10% de chance de carta rara ao derrotar
+        this.rareCardChance = 0;        // Chance de carta rara ao derrotar
     }
 
     @Override
