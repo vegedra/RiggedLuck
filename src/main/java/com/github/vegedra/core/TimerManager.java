@@ -25,6 +25,7 @@ public class TimerManager {
     private int secondsElapsed = 0;
     private int clicksThisSecond = 0;
     private boolean luckDecayUnlocked = false;
+    private float luckCarryover = 0f;
 
     // Construtor
     public TimerManager(Player player, GameManager gm) {
@@ -50,8 +51,13 @@ public class TimerManager {
             // Geração passiva de ouro
             player.changeCoins(gm.computeTotalCPS());
 
-            // Sorte passiva
-            player.changeLuck(Math.round(gm.computeTotalLuckPerSecond()));
+            // Sorte passiva - acumula frações e só aplica ao cruzar um inteiro
+            luckCarryover += gm.computeTotalLuckPerSecond();
+            int luckWhole = (int) luckCarryover;
+            if (luckWhole != 0) {
+                player.changeLuck(luckWhole);
+                luckCarryover -= luckWhole;
+            }
 
             // Oscilação + tendência natural da sorte
             updateLuck(clicksThisSecond);
@@ -130,6 +136,7 @@ public class TimerManager {
         secondsElapsed = 0;
         clicksThisSecond = 0;
         luckDecayUnlocked = false;
+        luckCarryover = 0f;
     }
 
     // Parar os timers

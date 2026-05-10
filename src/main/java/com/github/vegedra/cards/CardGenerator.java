@@ -62,41 +62,27 @@ public class CardGenerator {
 
     // Raridade
     private Card.Rarity rollRarity(int luck) {
-        // Pesos base (quanto maior o peso, maior a chance)
-        int commonWeight   = 60;
-        int uncommonWeight = 30;
-        int rareWeight     = 5;     // 9
-        int mythicWeight   = 1;  // mítico só aparece com sorte >= 70
+        int roll = random.nextInt(100);
 
-        // Bônus por sorte
-        final int minForBonus = 70;     // 60
-        if (luck > minForBonus) {
-            // A cada 10 pontos acima de 50, ganha 1 de peso para raro
-            // e 0.5 para mítico (arredondado para baixo, mínimo 1 quando aplicável)
-            int bonus = (luck - minForBonus) / 10;  // 0 a 5
-
-            rareWeight += bonus;
-            // Mítico só ganha peso se luck > 70 (bonus >=2)
-            if (bonus >= 2) {
-                mythicWeight += Math.max(1, bonus / 2);  // para bonus=2 -> +1, bonus=4 -> +2, etc.
-            }
-
-            // Reduz o peso de comum, mas mantém um mínimo para não sumirem
-            commonWeight -= (bonus + (bonus / 2));
-            if (commonWeight < 30) commonWeight = 30;
+        if (luck >= 80) {
+            // Todas as raridades disponíveis
+            if (roll < 3)  return Card.Rarity.MYTHIC;    //  3%
+            if (roll < 16) return Card.Rarity.RARE;       // 13%
+            if (roll < 54) return Card.Rarity.UNCOMMON;   // 38%
+            return Card.Rarity.COMMON;                     // 46%
         }
-
-        // Garante que mítico não ultrapasse um limite razoável (máximo 5)
-        if (mythicWeight > 5) mythicWeight = 5;
-
-        // Sorteio baseado nos pesos acumulados
-        int totalWeight = commonWeight + uncommonWeight + rareWeight + mythicWeight;
-        int roll = random.nextInt(totalWeight);
-
-        if (roll < mythicWeight)               return Card.Rarity.MYTHIC;
-        if (roll < mythicWeight + rareWeight)  return Card.Rarity.RARE;
-        if (roll < mythicWeight + rareWeight + uncommonWeight)
-            return Card.Rarity.UNCOMMON;
+        if (luck >= 45) {
+            // RARE disponível; MYTHIC ainda bloqueado
+            // Chance de raro sobe suavemente de 2 % (sorte 45) a 13 % (sorte 79)
+            int rareChance = 2 + (luck - 45) / 3;
+            if (roll < rareChance)       return Card.Rarity.RARE;
+            if (roll < rareChance + 37)  return Card.Rarity.UNCOMMON;
+            return Card.Rarity.COMMON;
+        }
+        // Só COMMON e UNCOMMON
+        // Uncommon sobe de 20 % (sorte 0) a 37 % (sorte 44)
+        int uncommonChance = 20 + luck * 17 / 44;
+        if (roll < uncommonChance) return Card.Rarity.UNCOMMON;
         return Card.Rarity.COMMON;
     }
 
