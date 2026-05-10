@@ -123,21 +123,40 @@ public class UI {
         mainPanel.setPreferredSize(new Dimension(800, 600));
         window.setContentPane(mainPanel);
 
-        // Game Panel - tela de jogo
-        gamePanel = new JPanel();
-        gamePanel.setLayout(null);  // absolute positioning
-        gamePanel.setBackground(Color.white);
+        // Game Panel - tela de jogo e imagem de fundo
+        gamePanel = new JPanel() {
+            Image bg;
+            {
+                // Carrega a imagem uma única vez (bloco de inicialização)
+                try {
+                    bg = new ImageIcon(getClass().getResource("/images/background_game.png")).getImage();
+                } catch (Exception e) {
+                    bg = null;
+                    setBackground(Color.white); // fallback
+                }
+            }
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (bg != null) {
+                    g.drawImage(bg, 0, 0, getWidth(), getHeight(), this);
+                }
+            }
+        };
+        gamePanel.setLayout(null);
+        //gamePanel.setBackground(Color.white);
 
         // Clicker (circulo magico)
         JPanel clickerPanel = new JPanel();
         clickerPanel.setBounds(55, 190, 250, 255);
-        clickerPanel.setBackground(Color.white);
+        //clickerPanel.setBackground(Color.white);
         clickerPanel.setBorder(null);
         gamePanel.add(clickerPanel);
         // Imagem do clicker
         ImageIcon circle = new ImageIcon(getClass().getResource("/images/circle.png"));
         JButton clickerButton = new JButton();
-        clickerButton.setBackground(Color.white);
+        //clickerButton.setBackground(Color.white);
         clickerButton.setFocusPainted(false);
         clickerButton.setBorder(null);
         clickerButton.setIcon(circle);
@@ -148,7 +167,7 @@ public class UI {
         // Counter panel
         JPanel counterPanel = new JPanel();
         counterPanel.setBounds(30, 40, 320, 150);
-        counterPanel.setBackground(Color.white);
+        //counterPanel.setBackground(Color.white);
         counterPanel.setLayout(new BoxLayout(counterPanel, BoxLayout.Y_AXIS));
         gamePanel.add(counterPanel);
 
@@ -227,7 +246,7 @@ public class UI {
         JPanel cardPanel = new JPanel();
         cardPanel.setBounds(30, 480, 740, 100);                 // x=50, y=480, largura 700, altura 100
         cardPanel.setLayout(new GridLayout(1, 9, 5, 0));    // 1 linha, 9 colunas, espaçamento horizontal 5px
-        cardPanel.setBackground(Color.white);
+        //cardPanel.setBackground(Color.white);
         cardPanel.setBorder(BorderFactory.createTitledBorder("Cartas Ativas"));
         for (int i = 0; i < 9; i++) {
             cardSlots[i] = new JPanel();
@@ -242,9 +261,26 @@ public class UI {
         gamePanel.add(cardPanel);
 
         // Menu Inicial
-        titlePanel = new JPanel();
+        titlePanel = new JPanel() {
+            Image bg;
+            {
+                try {
+                    bg = new ImageIcon(getClass().getResource("/images/background_title.png")).getImage();
+                } catch (Exception e) {
+                    bg = null;
+                    setBackground(Color.white);
+                }
+            }
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (bg != null) {
+                    g.drawImage(bg, 0, 0, getWidth(), getHeight(), this);
+                }
+            }
+        };
         titlePanel.setLayout(null);
-        titlePanel.setBackground(Color.white);
+        //titlePanel.setBackground(Color.white);
         // Titulo
         JLabel titleLabel = new JLabel("Rigged Luck", SwingConstants.CENTER);
         titleLabel.setBounds(250, 150, 300, 50);
@@ -276,9 +312,26 @@ public class UI {
         titlePanel.add(versionLabel);
 
         // Menu de pausa
-        pausePanel = new JPanel();
+        pausePanel = new JPanel() {
+            Image bg;
+            {
+                try {
+                    bg = new ImageIcon(getClass().getResource("/images/background_pause.png")).getImage();
+                } catch (Exception e) {
+                    bg = null;
+                    setBackground(Color.white);
+                }
+            }
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (bg != null) {
+                    g.drawImage(bg, 0, 0, getWidth(), getHeight(), this);
+                }
+            }
+        };
         pausePanel.setLayout(null);
-        pausePanel.setBackground(Color.white);
+        //pausePanel.setBackground(Color.white);
 
         JLabel pausedLabel = new JLabel("Jogo Pausado!", SwingConstants.CENTER);
         pausedLabel.setFont(font3);
