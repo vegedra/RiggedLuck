@@ -138,7 +138,7 @@ public class GameManager {
         }
 
         // Gera 3 opções e abre o picker estilo roguelike, o custo só é cobrado se o jogador escolher
-        Card[] options = generator.generateOptions(player.getLuck(), activeCards, 2);       // 3
+        Card[] options = generator.generateOptions(player.getLuck(), activeCards, 3);       // 3
         CardPickerDialog picker = new CardPickerDialog(ui.window, options, rollCost);
         picker.setVisible(true);    // bloqueia até fechar (modal)
 
@@ -322,6 +322,8 @@ public class GameManager {
         }
         // O Mundo: dobra tudo se 9 cartas
         if (hasCard("o_mundo") && countActiveCards() == 9) total *= 2;
+
+        if (hasCard("os_amantes")) total += countCardsOfType(Card.CardType.LUCK) * 0.3f;
         return total;
     }
     public int computeTotalCPS() {
@@ -333,6 +335,9 @@ public class GameManager {
         if (hasCard("a_sacerdotisa")) base += countCardsOfType(Card.CardType.PASSIVE) * 2;
         // O Mundo: dobra tudo se 9 cartas
         if (hasCard("o_mundo") && countActiveCards() == 9) base *= 2;
+        // O Hierofante: +3/s por carta DEFENSE
+        if (hasCard("o_hierofante")) base += countCardsOfType(Card.CardType.DEFENSE) * 3;
+
         return base;
     }
     public int computeTotalClickValue() {
@@ -340,6 +345,7 @@ public class GameManager {
         // O Mago: +2/clique por carta CLICK
         if (hasCard("o_mago")) base += countCardsOfType(Card.CardType.CLICK) * 2;
         if (hasCard("o_mundo") && countActiveCards() == 9) base *= 2;
+        if (hasCard("o_imperador")) base += countCardsOfType(Card.CardType.RISK) * 5;
         if (cobradorManager != null) {
             base = Math.max(1, base - cobradorManager.getTotalClickPenalty());
         }
