@@ -22,7 +22,7 @@ public class CobradorAgressor extends Cobrador {
                 "cobrador_agressor",
                 "Cobrador Agressor",
                 "Um verdadeiro bully. Drena moedas rapidamente e corrói a sorte enquanto presente.",
-                8,      // drainPerSecond
+                12,      // drainPerSecond
                 100,                  // paymentCost
                 15,                   // luckPenaltyOnAttack
                 "/images/enemies/cobrador_agressor.gif",
@@ -50,10 +50,12 @@ public class CobradorAgressor extends Cobrador {
 
     @Override
     public void aplicarDebuff(Player player) {
-        // Drena 1% de sorte adicional por segundo além da drenagem normal de moedas
-        player.changeLuck(-1);
+        // -0.5% sorte/s efetivo — bate a cada 2 segundos
+        if (secondsActive % 2 == 0) {
+            player.changeLuck(-1);
+        }
     }
 
     @Override
-    public double getDrainPercent() { return 0.025; }
+    public double getDrainPercent() { return 0.015; }
 }

@@ -22,7 +22,7 @@ public class CobradorAmaldicoado extends Cobrador {
                 "cobrador_amaldicoado",
                 "Cobrador Amaldiçoado",
                 "Uma presença das sombras. Drena moedas e sorte agressivamente. Cuidado!",
-                15,       // drainPerSecond
+                20,       // drainPerSecond
                 400,                    // paymentCost
                 25,                     // luckPenaltyOnAttack
                 "/images/enemies/cobrador_amaldicoado.gif",
@@ -55,5 +55,5 @@ public class CobradorAmaldicoado extends Cobrador {
     }
 
     @Override
-    public double getDrainPercent() { return 0.04; }
+    public double getDrainPercent() { return 0.025; }
 }

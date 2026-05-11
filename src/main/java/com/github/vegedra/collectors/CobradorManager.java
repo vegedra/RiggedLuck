@@ -24,8 +24,8 @@ public class CobradorManager {
 
     // Constantes
     private static final int MAX_COBRADORES = 5;
-    private static final int SPAWN_INTERVAL_SEC = 15;       // Verifica spawn a cada 15s
-    private static final int SPAWN_CHANCE_BASE = 30;        // 25% base de chance de spawn
+    private static final int SPAWN_INTERVAL_SEC = 10;       // Verifica spawn a cada 15s (old)
+    private static final int SPAWN_CHANCE_BASE = 30;        // 30% base de chance de spawn
     private static final int COINS_TRIGGER = 100;           // Mínimo de moedas para ativar sistema (100)
 
     // Dimensões do card dos cobradores
@@ -104,15 +104,20 @@ public class CobradorManager {
         for (Cobrador c : cobradores) {
             if (c == null || !c.isActive()) continue;
 
-            // CLICK_DRAIN não drena por segundo, é descontado em cada clique
+            // Drenagem de moedas
             if (!c.drainsPerClick()) {
                 int baseDrain = c.getDrainPerSecond();
-                if (c.getAdaptiveMode() == Cobrador.AdaptiveMode.AMPLIFIED_DRAIN ||
-                        c.getAdaptiveMode() == Cobrador.AdaptiveMode.GLASS_CANNON) {
-                    baseDrain *= 2;
+                int effectiveDrain;
+                if (c.getAdaptiveMode() == Cobrador.AdaptiveMode.AMPLIFIED_DRAIN) {
+                    // Drena o maior entre (flat×2) e (30% do CPS do jogador)
+                    int cpsDrain = (int)(gm.computeTotalCPS() * 0.3);
+                    effectiveDrain = Math.max(baseDrain * 2, cpsDrain);
+                } else if (c.getAdaptiveMode() == Cobrador.AdaptiveMode.GLASS_CANNON) {
+                    effectiveDrain = Math.max(baseDrain * 2, (int)(player.getCoins() * c.getDrainPercent()));
+                } else {
+                    effectiveDrain = Math.max(baseDrain, (int)(player.getCoins() * c.getDrainPercent()));
                 }
-                int percentDrain = (int)(player.getCoins() * c.getDrainPercent());
-                player.changeCoins(-Math.max(baseDrain, percentDrain));
+                player.changeCoins(-effectiveDrain);
             }
 
             c.tick();
@@ -203,7 +208,7 @@ public class CobradorManager {
         }
     }
 
-    // Ataque
+    /* Ataque
     public void handleAttack(int index) {
         Cobrador c = cobradores[index];
         if (c == null || !c.isActive()) return;
@@ -238,6 +243,7 @@ public class CobradorManager {
 
         gm.checkGameOver();
     }
+     */
 
     // Tenta conceder carta de recompensa ao derrotar um cobrador
     private boolean tryGrantFightCard(Cobrador c) {
@@ -409,7 +415,7 @@ public class CobradorManager {
         payBtn.addActionListener(cHandler);
         card.add(payBtn);
 
-        // Botão Atacar — mostra recompensa ao vencer
+        /* Botão Atacar — mostra recompensa ao vencer
         JButton attackBtn = new JButton(
                 "<html><center>Atacar"
                         + " <font size='1'>(+" + c.getCoinRewardOnDefeat() + " moedas)</font></center></html>"
@@ -423,6 +429,7 @@ public class CobradorManager {
         attackBtn.setActionCommand("attack_cobrador_" + cobradorIndex);
         attackBtn.addActionListener(cHandler);
         card.add(attackBtn);
+         */
 
         // Tooltip completo
         String adaptiveDesc = c.getAdaptiveMode() != Cobrador.AdaptiveMode.NONE
@@ -432,7 +439,7 @@ public class CobradorManager {
                 + c.getDescription()
                 + "<br><br>Drenagem: " + drainStr
                 + "<br>Custo para pagar: " + displayCost + " moedas (+" + c.getLuckOnPay() + "% sorte)"
-                + "<br>Penalidade ao atacar: -" + c.getLuckPenaltyOnAttack() + "% sorte"
+                //+ "<br>Penalidade ao atacar: -" + c.getLuckPenaltyOnAttack() + "% sorte"
                 + "<br>Recompensa ao derrotar: +" + c.getCoinRewardOnDefeat() + " moedas"
                 + "<br>Chance de carta: " + c.getRareCardChance() + "%"
                 + adaptiveDesc + "</html>");

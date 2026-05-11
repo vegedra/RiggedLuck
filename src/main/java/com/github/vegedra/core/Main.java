@@ -165,11 +165,12 @@ public class Main {
                         gameManager.getCobradorManager().handlePay(index);
                     }
 
-                    // Atacar cobrador
+                    /* Atacar cobrador
                     if (action.startsWith("attack_cobrador_")) {
                         int index = Integer.parseInt(action.split("_")[2]);
                         gameManager.getCobradorManager().handleAttack(index);
                     }
+                     */
                     break;
             }
         }

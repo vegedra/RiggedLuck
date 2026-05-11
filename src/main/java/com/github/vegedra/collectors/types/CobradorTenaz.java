@@ -27,7 +27,7 @@ public class CobradorTenaz extends Cobrador {
                 "cobrador_tenaz",
                 "Cobrador Tenaz",
                 "Resistente à ataques. Mais caro para pagar e enfraquece seus cliques enquanto presente.",
-                5,      // drainPerSecond
+                8,      // drainPerSecond
                 200,                  // paymentCost
                 8,                    // luckPenaltyOnAttack (aplicado por ATAQUE, não por derrota)
                 "/images/enemies/cobrador_tenaz.gif",
@@ -66,7 +66,7 @@ public class CobradorTenaz extends Cobrador {
     }
 
     @Override
-    public double getDrainPercent() { return 0.015; }
+    public double getDrainPercent() { return 0.01; }
 
     // Getters
     public int getAttacksReceived()  { return attacksReceived; }
