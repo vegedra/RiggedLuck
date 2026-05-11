@@ -111,7 +111,7 @@ public class CardUI {
                         SwingConstants.CENTER
                 );
                 usedLabel.setFont(new Font("Cambria", Font.PLAIN, 10));
-                usedLabel.setToolTipText(tooltip); // ← tooltip no label
+                usedLabel.setToolTipText(tooltip); // tooltip no label
                 ui.cardSlots[index].add(usedLabel, BorderLayout.CENTER);
 
             // Carta passiva

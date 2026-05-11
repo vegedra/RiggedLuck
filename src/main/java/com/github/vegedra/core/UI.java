@@ -151,6 +151,7 @@ public class UI {
         JPanel clickerPanel = new JPanel();
         clickerPanel.setBounds(55, 190, 250, 255);
         //clickerPanel.setBackground(Color.white);
+        clickerPanel.setOpaque(false);
         clickerPanel.setBorder(null);
         gamePanel.add(clickerPanel);
         // Imagem do clicker
@@ -158,6 +159,8 @@ public class UI {
         JButton clickerButton = new JButton();
         //clickerButton.setBackground(Color.white);
         clickerButton.setFocusPainted(false);
+        clickerButton.setOpaque(false);
+        clickerButton.setContentAreaFilled(false);
         clickerButton.setBorder(null);
         clickerButton.setIcon(circle);
         clickerButton.addActionListener(cHandler);
@@ -168,6 +171,7 @@ public class UI {
         JPanel counterPanel = new JPanel();
         counterPanel.setBounds(30, 40, 320, 150);
         //counterPanel.setBackground(Color.white);
+        counterPanel.setOpaque(false);  // Transparente
         counterPanel.setLayout(new BoxLayout(counterPanel, BoxLayout.Y_AXIS));
         gamePanel.add(counterPanel);
 
@@ -229,6 +233,8 @@ public class UI {
         JButton pauseButton = new JButton();
         pauseButton.setBounds(740, 10, 50, 50);
         pauseButton.setFocusPainted(false);
+        pauseButton.setOpaque(false);
+        pauseButton.setContentAreaFilled(false);
         pauseButton.setBorder(null);
         pauseButton.setActionCommand("pause");
         pauseButton.addActionListener(cHandler);
@@ -248,6 +254,7 @@ public class UI {
         cardPanel.setLayout(new GridLayout(1, 9, 5, 0));    // 1 linha, 9 colunas, espaçamento horizontal 5px
         //cardPanel.setBackground(Color.white);
         cardPanel.setBorder(BorderFactory.createTitledBorder("Cartas Ativas"));
+        cardPanel.setOpaque(false);
         for (int i = 0; i < 9; i++) {
             cardSlots[i] = new JPanel();
             cardSlots[i].setBackground(Color.white);
@@ -282,7 +289,8 @@ public class UI {
         titlePanel.setLayout(null);
         //titlePanel.setBackground(Color.white);
         // Titulo
-        JLabel titleLabel = new JLabel("Rigged Luck", SwingConstants.CENTER);
+        //JLabel titleLabel = new JLabel("Rigged Luck", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel();
         titleLabel.setBounds(250, 150, 300, 50);
         titleLabel.setFont(font3);
         titleLabel.setForeground(Color.black);
